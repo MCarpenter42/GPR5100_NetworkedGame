@@ -25,13 +25,15 @@ public class GameManager : Core
 
     private static GameManager instance = null;
 
+    public static Controls controlsInstance;
+
     #endregion
 
     #region [ PROPERTIES ]
 
     public static bool goToStartScreen = true;
 
-
+    public static bool isCursorLocked = false;
 
     public static bool exitEventStarted = false;
 
@@ -140,6 +142,5 @@ public class GameManager : Core
 #endif
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
 
 }

@@ -23,7 +23,17 @@ public class Core : MonoBehaviourPunCallbacks
 {
     #region [ OBJECTS ]
 
-
+    public static Controls Controls
+    {
+        get
+        {
+            if (GameManager.controlsInstance == null)
+            {
+                GameManager.controlsInstance = new Controls();
+            }
+            return GameManager.controlsInstance;
+        }
+    }
 
     #endregion
 
@@ -36,6 +46,21 @@ public class Core : MonoBehaviourPunCallbacks
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
     #region [ GAME STATE ]
+
+    public static void LockCursor(bool lockCsr)
+    {
+        GameManager.isCursorLocked = lockCsr;
+        if (lockCsr)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+    }
 
     public static void Disconnect()
     {
@@ -53,6 +78,25 @@ public class Core : MonoBehaviourPunCallbacks
 #if UNITY_EDITOR
         EditorApplication.ExitPlaymode();
 #endif
+    }
+
+    #endregion
+
+    #region [ INPUT HANDLING ]
+
+    public static bool GetInput(ControlInput input)
+    {
+        return Input.GetKey(input.Key);
+    }
+
+    public static bool GetInputDown(ControlInput input)
+    {
+        return Input.GetKeyDown(input.Key);
+    }
+
+    public static bool GetInputUp(ControlInput input)
+    {
+        return Input.GetKeyUp(input.Key);
     }
 
     #endregion

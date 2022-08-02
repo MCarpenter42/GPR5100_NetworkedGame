@@ -29,7 +29,7 @@ public class Menu : UIElement
 
     #region [ PROPERTIES ]
 
-    private int activeFrame = 0;
+    [HideInInspector] public int activeFrame = 0;
 
     #endregion
 
@@ -52,6 +52,11 @@ public class Menu : UIElement
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+    public void ShowMenu(bool show)
+    {
+        menuFrames[activeFrame].SetShown(show);
+    }
+
     public void SetActiveFrame(int index)
     {
         if (index.InBounds(menuFrames))
@@ -67,6 +72,37 @@ public class Menu : UIElement
                     menuFrames[i].SetShown(false);
                 }
             }
+        }
+    }
+
+    public void SetActiveFrame(UIElement frame)
+    {
+        int n = -1;
+        for (int i = 0; i < menuFrames.Length; i++)
+        {
+            if (frame == menuFrames[i])
+            {
+                n = i;
+                break;
+            }
+        }
+        if (n > -1)
+        {
+            for (int i = 0; i < menuFrames.Length; i++)
+            {
+                if (i == n)
+                {
+                    menuFrames[i].SetShown(true);
+                }
+                else
+                {
+                    menuFrames[i].SetShown(false);
+                }
+            }
+        }
+        else
+        {
+            Debug.LogError("UI element \"" + frame.gameObject.name + "\" is not a valid frame of menu \"" + gameObject.name + "\"!");
         }
     }
 }

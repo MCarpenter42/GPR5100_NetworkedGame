@@ -27,11 +27,15 @@ public class GameManager : Core
 
     public static Controls controlsInstance;
 
+    public static GameObject WorldSpace { get { return GameObject.FindGameObjectWithTag("WorldSpace"); } }
+
     #endregion
 
     #region [ PROPERTIES ]
 
     public static bool goToStartScreen = true;
+
+    public static bool isServer = false;
 
     public static bool isCursorLocked = false;
 

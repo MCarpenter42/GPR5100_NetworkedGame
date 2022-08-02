@@ -19,7 +19,7 @@ using NeoCambion.Interpolation;
 using NeoCambion.Maths;
 using NeoCambion.Unity;
 
-public class Player : Core
+public class PlayerController : Core
 {
     #region [ OBJECTS ]
 
@@ -38,20 +38,29 @@ public class Player : Core
     [HideInInspector] public Rigidbody rb { get { return gameObject.GetOrAddComponent<Rigidbody>(); } }
 
     [Header("Player Properties")]
+    public Color colour = Color.white;
     [SerializeField] float moveSpeed = 3.0f;
     [SerializeField] float rotFactor = 5.0f;
-    [Range(-50.0f, 0.0f)]
-    [SerializeField] float minLookAngle = -30.0f;
-    [Range(0.0f, 50.0f)]
+    [Range(-15.0f, 15.0f)]
+    [SerializeField] float minLookAngle = -15.0f;
+    [Range(15.0f, 45.0f)]
     [SerializeField] float maxLookAngle = 30.0f;
 
-    [HideInInspector] public bool isFocusPlayer = false;
+    public bool isFocusPlayer = false;
 
     [HideInInspector] public Vector3 direction = Vector3.zero;
+    [HideInInspector] public float dirRot = 0.0f;
 
     private float camPitch = 0.0f;
     private float camYaw = 0.0f;
     private Vector3 camOffset = new Vector3();
+
+    [Header("Combat")]
+    [Range(1, 10)]
+    [SerializeField] int maxHealth;
+    [HideInInspector] public int currentHealth;
+    [SerializeField] Weapon[] weapons = new Weapon[1];
+    public int activeWeapon = 0;
 
     #endregion
 
@@ -67,19 +76,49 @@ public class Player : Core
 
     void Awake()
     {
-        camOffset = cam.position - pitchPivot.position;
+        if (isFocusPlayer)
+        {
+            camOffset = cam.position - pitchPivot.position;
+        }
+        else
+        {
+            cam.gameObject.SetActive(false);
+        }
+        currentHealth = maxHealth;
     }
 
     void Start()
     {
-        LockCursor(true);
+        if (isFocusPlayer)
+        {
+            LockCursor(true);
+        }
     }
 
     void Update()
     {
-        GetDirection();
-        Rotate();
-        CameraDist();
+        if (isFocusPlayer)
+        {
+            GetDirection();
+            Rotate();
+            CameraDist();
+
+            if (GetInput(Controls.Shooting.PrimaryFire))
+            {
+                weapons[activeWeapon].PrimaryFire();
+            }
+            else if (GetInput(Controls.Shooting.SecondaryFire))
+            {
+                if (weapons[activeWeapon].hasSecondaryFire)
+                {
+                    weapons[activeWeapon].PrimaryFire();
+                }
+                else
+                {
+                    weapons[activeWeapon].SecondaryFire();
+                }
+            }
+        }
     }
 
     void FixedUpdate()
@@ -146,6 +185,57 @@ public class Player : Core
 
         if (direction.magnitude > 0.0f)
         {
+            float yRotLocal = 0.0f;
+            if (direction.x > 0.0f)
+            {
+                if (direction.z > 0.0f)
+                {
+                    yRotLocal = 45.0f;
+                }
+                else if (direction.z < 0.0f)
+                {
+                    yRotLocal = 135.0f;
+                }
+                else
+                {
+                    yRotLocal = 90.0f;
+                }
+            }
+            else if (direction.x < 0.0f)
+            {
+                if (direction.z > 0.0f)
+                {
+                    yRotLocal = 315.0f;
+                }
+                else if (direction.z < 0.0f)
+                {
+                    yRotLocal = 225.0f;
+                }
+                else
+                {
+                    yRotLocal = 270.0f;
+                }
+            }
+            else
+            {
+                if (direction.z < 0.0f)
+                {
+                    yRotLocal = 180.0f;
+                }
+            }
+            if (body.localEulerAngles.y != yRotLocal)
+            {
+                float angle = (yRotLocal - body.localEulerAngles.y).WrapClamp(-180.0f, 180.0f);
+                float bodyRotScale = 80.0f * Time.deltaTime;
+                angle = Mathf.Clamp(angle, -bodyRotScale, bodyRotScale);
+                bodyRot.y += angle;
+            }
+        }
+
+        body.eulerAngles = bodyRot;
+
+        /*if (direction.magnitude > 0.0f)
+        {
             yawRotator.transform.LookAt(transform.TransformDirection(direction));
             float angle = Vector3.Angle(body.transform.forward, yawRotator.transform.forward);
             Debug.Log(angle);
@@ -157,7 +247,7 @@ public class Player : Core
             }
             bodyRot.y += angle;
         }
-        body.eulerAngles = bodyRot;
+        body.eulerAngles = bodyRot;*/
     }
 
     private void CameraDist()

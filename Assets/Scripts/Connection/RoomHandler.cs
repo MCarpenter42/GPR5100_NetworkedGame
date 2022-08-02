@@ -44,26 +44,6 @@ public class RoomHandler : Core
 
     #region [ BUILT-IN UNITY FUNCTIONS ]
 
-    void Awake()
-    {
-
-    }
-
-    void Start()
-    {
-
-    }
-
-    void Update()
-    {
-
-    }
-
-    void FixedUpdate()
-    {
-
-    }
-
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
         base.OnRoomListUpdate(roomList);
@@ -78,12 +58,34 @@ public class RoomHandler : Core
         }
     }
 
+    public override void OnJoinedRoom()
+    {
+        base.OnJoinedRoom();
+        if (GameManager.isServer)
+        {
+            PhotonNetwork.LoadLevel("3_Gameplay");
+        }
+        else
+        {
+            if (PhotonNetwork.CurrentRoom.PlayerCount >= 2)
+            {
+                PhotonNetwork.LoadLevel("3_Gameplay");
+            }
+            else
+            {
+                PhotonNetwork.LoadLevel("2b_WaitingRoom");
+            }
+        }
+        PhotonNetwork.NickName = "<>";
+    }
+
     #endregion
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
     public static void CreateRoom(string roomName, int playerCap, string password)
     {
+        RoomOptions opt = new RoomOptions();
         if (roomName.IsEmptyOrNullOrWhiteSpace())
         {
             roomName = "Room_" + Ext_String.RandomString(8);
@@ -92,12 +94,13 @@ public class RoomHandler : Core
         {
             playerCap = 2;
         }
+        opt.MaxPlayers = (byte)playerCap;
         if (!password.ValidateString())
         {
             password = null;
         }
 
-
+        PhotonNetwork.CreateRoom(roomName, opt);
     }
 
     public static bool JoinRoom(string roomName, string password)

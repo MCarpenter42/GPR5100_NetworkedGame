@@ -31,6 +31,7 @@ public class RoomHandlerButton : ExtendedButton
     [SerializeField] TMP_InputField inputRoomName;
     [SerializeField] TMP_InputField inputPlayerCap;
     [SerializeField] TMP_InputField inputPassword;
+    [SerializeField] Toggle startAsServer;
 
     #endregion
 
@@ -58,7 +59,7 @@ public class RoomHandlerButton : ExtendedButton
 
     public void CreateRoom()
     {
-        if (inputRoomName == null || inputPlayerCap == null || inputPassword == null)
+        if (inputRoomName == null || inputPlayerCap == null || inputPassword == null || startAsServer == null)
         {
             Debug.LogError("Missing necessary component!");
         }
@@ -68,17 +69,18 @@ public class RoomHandlerButton : ExtendedButton
             int playerCap = 0;
             try
             {
-                playerCap = int.Parse(inputRoomName.text);
+                playerCap = int.Parse(inputPlayerCap.text);
             }
             catch
             {
                 playerCap = 10;
             }
-            string password = inputRoomName.text;
+            string password = inputPassword.text;
             if (!RoomHandler.RoomExistsWithName(roomName))
             {
                 if (password.ValidateString())
                 {
+                    GameManager.isServer = startAsServer.isOn;
                     RoomHandler.CreateRoom(roomName, playerCap, password);
                 }
                 else

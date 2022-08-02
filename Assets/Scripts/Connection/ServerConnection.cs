@@ -18,7 +18,6 @@ using NeoCambion.Unity;
 public class ServerConnection : Core
 {
     [SerializeField] Menu frameHandler;
-    [SerializeField] RectTransform loadingWheel;
     [SerializeField] UnityEvent onConnected;
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -31,14 +30,6 @@ public class ServerConnection : Core
         {
             GameManager.goToStartScreen = false;
             SceneManager.LoadScene("1_StartScreen");
-        }
-    }
-
-    void Update()
-    {
-        if (loadingWheel != null && loadingWheel.gameObject.activeSelf)
-        {
-            loadingWheel.Rotate(0.0f, 0.0f, -90.0f * Time.deltaTime);
         }
     }
 

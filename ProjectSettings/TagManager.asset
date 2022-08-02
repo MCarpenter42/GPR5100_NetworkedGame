@@ -5,7 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - Bullet
-  - PlayerHitbox
+  - WorldSpace
+  - ErrorText_NameSet
   layers:
   - Default
   - TransparentFX

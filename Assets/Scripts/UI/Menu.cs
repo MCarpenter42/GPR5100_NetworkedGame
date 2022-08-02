@@ -23,6 +23,7 @@ public class Menu : UIElement
 {
     #region [ OBJECTS ]
 
+    [Header("Components")]
     [SerializeField] UIElement[] menuFrames;
 
     #endregion
@@ -30,6 +31,11 @@ public class Menu : UIElement
     #region [ PROPERTIES ]
 
     [HideInInspector] public int activeFrame = 0;
+    [HideInInspector] public bool framesVisible = true;
+
+    [Header("Menu Properties")]
+    public UnityEvent onShowMenu;
+    public UnityEvent onHideMenu;
 
     #endregion
 
@@ -54,7 +60,20 @@ public class Menu : UIElement
 
     public void ShowMenu(bool show)
     {
-        menuFrames[activeFrame].SetShown(show);
+        if (show)
+        {
+            menuFrames[activeFrame].SetShown(show);
+            onShowMenu.Invoke();
+        }
+        else
+        {
+            for (int i = 0; i < menuFrames.Length; i++)
+            {
+                menuFrames[i].SetShown(show);
+            }
+            onHideMenu.Invoke();
+        }
+        framesVisible = show;
     }
 
     public void SetActiveFrame(int index)

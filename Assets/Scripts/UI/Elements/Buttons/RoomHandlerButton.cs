@@ -66,31 +66,38 @@ public class RoomHandlerButton : ExtendedButton
         else
         {
             string roomName = inputRoomName.text;
-            int playerCap = 0;
-            try
+            if (roomName.ValidateString())
             {
-                playerCap = int.Parse(inputPlayerCap.text);
-            }
-            catch
-            {
-                playerCap = 10;
-            }
-            string password = inputPassword.text;
-            if (!RoomHandler.RoomExistsWithName(roomName))
-            {
-                if (password.ValidateString())
+                int playerCap = 0;
+                try
                 {
-                    GameManager.isServer = startAsServer.isOn;
-                    RoomHandler.CreateRoom(roomName, playerCap, password);
+                    playerCap = int.Parse(inputPlayerCap.text);
+                }
+                catch
+                {
+                    playerCap = 10;
+                }
+                string password = inputPassword.text;
+                if (!RoomHandler.RoomExistsWithName(roomName))
+                {
+                    if (password.ValidateString())
+                    {
+                        GameManager.isServer = startAsServer.isOn;
+                        RoomHandler.CreateRoom(roomName, playerCap, password);
+                    }
+                    else
+                    {
+                        DebugLogging.Error("#PlayerError_InvalidPassword");
+                    }
                 }
                 else
                 {
-                    DebugLogging.Error("#PlayerError_InvalidPassword");
+                    DebugLogging.Error("#PlayerError_RoomNameTaken");
                 }
             }
             else
             {
-                DebugLogging.Error("#PlayerError_RoomNameTaken");
+                DebugLogging.Error("#PlayerError_InvalidRoomName");
             }
         }
     }

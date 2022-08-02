@@ -29,8 +29,7 @@ public class RoomHandler : Core
 
     #region [ PROPERTIES ]
 
-    private static List<RoomInfo> rooms = new List<RoomInfo>();
-    private static List<RoomInfo> roomsOpen = new List<RoomInfo>();
+
 
     #endregion
 
@@ -44,39 +43,47 @@ public class RoomHandler : Core
 
     #region [ BUILT-IN UNITY FUNCTIONS ]
 
-    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    public static void RoomListUpdate(List<RoomInfo> roomList)
     {
-        base.OnRoomListUpdate(roomList);
-        rooms = roomList;
-        roomsOpen.Clear();
-        for (int i = 0; i < rooms.Count; i++)
+        foreach (RoomInfo room in roomList)
         {
-            if (rooms[i].IsOpen)
+            if ((!room.IsOpen || !room.IsVisible || room.RemovedFromList) && rooms.ContainsKey(room.Name))
             {
-                roomsOpen.Add(rooms[i]);
-            }
-        }
-    }
-
-    public override void OnJoinedRoom()
-    {
-        base.OnJoinedRoom();
-        if (GameManager.isServer)
-        {
-            PhotonNetwork.LoadLevel("3_Gameplay");
-        }
-        else
-        {
-            if (PhotonNetwork.CurrentRoom.PlayerCount >= 2)
-            {
-                PhotonNetwork.LoadLevel("3_Gameplay");
+                rooms.Remove(room.Name);
             }
             else
             {
-                PhotonNetwork.LoadLevel("2b_WaitingRoom");
+                if (rooms.ContainsKey(room.Name))
+                {
+                    rooms[room.Name] = room;
+                }
+                else
+                {
+                    rooms.Add(room.Name, room);
+                }
             }
         }
-        PhotonNetwork.NickName = "<>";
+        //Debug.Log(rooms.Count);
+
+        foreach (KeyValuePair<string, RoomInfo> kvp in rooms)
+        {
+            if (roomsOpen.ContainsKey(kvp.Key))
+            {
+                roomsOpen[kvp.Key] = kvp.Value;
+            }
+            else
+            {
+                roomsOpen.Add(kvp.Key, kvp.Value);
+            }
+        }
+
+        foreach (KeyValuePair<string, RoomInfo> kvp in roomsOpen)
+        {
+            if (!rooms.ContainsKey(kvp.Key))
+            {
+                roomsOpen.Remove(kvp.Key);
+            }
+        }
     }
 
     #endregion
@@ -85,7 +92,6 @@ public class RoomHandler : Core
 
     public static void CreateRoom(string roomName, int playerCap, string password)
     {
-        RoomOptions opt = new RoomOptions();
         if (roomName.IsEmptyOrNullOrWhiteSpace())
         {
             roomName = "Room_" + Ext_String.RandomString(8);
@@ -94,13 +100,15 @@ public class RoomHandler : Core
         {
             playerCap = 2;
         }
-        opt.MaxPlayers = (byte)playerCap;
         if (!password.ValidateString())
         {
             password = null;
         }
-
-        PhotonNetwork.CreateRoom(roomName, opt);
+        RoomOptions rOpt = new RoomOptions();
+        rOpt.IsOpen = true;
+        rOpt.IsVisible = true;
+        rOpt.MaxPlayers = (byte)playerCap;
+        PhotonNetwork.CreateRoom(roomName, rOpt);
     }
 
     public static bool JoinRoom(string roomName, string password)
@@ -140,8 +148,13 @@ public class RoomHandler : Core
         {
             for (int i = 0; i < 50; i++)
             {
-                int n = Random.Range(0, roomsOpen.Count);
-                string roomName = roomsOpen[n].Name;
+                List<string> keys = new List<string>();
+                foreach(KeyValuePair<string, RoomInfo> kvp in rooms)
+                {
+                    keys.Add(kvp.Key);
+                }
+                int n = Random.Range(0, keys.Count);
+                string roomName = roomsOpen[keys[n]].Name;
                 if (JoinRoom(roomName, "", true))
                 {
                     successful = true;
@@ -157,12 +170,9 @@ public class RoomHandler : Core
 
     public static RoomInfo GetRoomInfo(string roomName)
     {
-        foreach (RoomInfo room in rooms)
+        if (rooms.ContainsKey(roomName))
         {
-            if (roomName == room.Name)
-            {
-                return room;
-            }
+            return rooms[roomName];
         }
         return null;
     }

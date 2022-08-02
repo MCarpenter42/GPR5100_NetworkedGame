@@ -7,6 +7,17 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEditor;
 using TMPro;
+using Photon;
+using Photon.Pun;
+using Photon.Chat;
+using Photon.Realtime;
+
+using NeoCambion;
+using NeoCambion.Collections;
+using NeoCambion.Encryption;
+using NeoCambion.Interpolation;
+using NeoCambion.Maths;
+using NeoCambion.Unity;
 
 public class Weapon : Core
 {
@@ -53,10 +64,8 @@ public class Weapon : Core
     {
         if (!onCooldown)
         {
-            Projectile proj = Instantiate(primaryProjectile, firePoint, false);
-            proj.transform.position = firePoint.position;
-            proj.transform.eulerAngles = firePoint.eulerAngles;
-            proj.gameObject.transform.SetParent(GameManager.WorldSpace.transform);
+            //PhotonNetwork.InstantiateRoomObject(primaryProjectile.name, firePoint.transform.position, firePoint.rotation);
+            InstantiateRPC(primaryProjectile, firePoint.transform.position, firePoint.rotation);
             cooldown = StartCoroutine(Cooldown(primaryFireCooldown));
         }
     }

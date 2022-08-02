@@ -129,6 +129,39 @@ public class DebugLogging : Core
 
     private static void PlayerError(string logString)
     {
-        Debug.LogError("PLAYER ERROR: " + logString);
+        string[] substr = logString.Split('_');
+        switch (substr[0])
+        {
+            case "InvalidRoomName":
+                GameManager.UIHandler.ShowErrorText("Match names can only contain the following characters:\nLetters A-Z/a-z; Numbers 0-9; Underscore (_); Hyphen (-)", 8.0f);
+                break;
+
+            case "RoomNameTaken":
+                GameManager.UIHandler.ShowErrorText("That match name is already in use.", 8.0f);
+                break;
+
+            case "InvalidPassword":
+                GameManager.UIHandler.ShowErrorText("Passwords can only contain the following characters:\nLetters A-Z/a-z; Numbers 0-9; Underscore (_); Hyphen (-)", 8.0f);
+                break;
+
+            case "RoomFull":
+                GameManager.UIHandler.ShowErrorText("The match you are trying to join is full.", 8.0f);
+                break;
+
+            case "CantJoinRandom":
+                GameManager.UIHandler.ShowErrorText("Unable to find an open match to join.", 8.0f);
+                break;
+
+            case "InvalidNickame":
+                GameManager.UIHandler.ShowErrorText("Nicknames can only contain the following characters:\nLetters A-Z/a-z; Numbers 0-9; Underscore (_); Hyphen (-)", 8.0f);
+                break;
+                
+            case "NicknameTaken":
+                GameManager.UIHandler.ShowErrorText("That nickname is already in use.", 9.0f);
+                break;
+
+            default:
+                break;
+        }
     }
 }

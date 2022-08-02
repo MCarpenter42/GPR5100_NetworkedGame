@@ -116,5 +116,56 @@ namespace NeoCambion
                 return output;
             }
         }
+
+        public static class ITime
+        {
+            public static float Time(bool realtime)
+            {
+                if (realtime)
+                {
+                    return UnityEngine.Time.unscaledTime;
+                }
+                else
+                {
+                    return UnityEngine.Time.time;
+                }
+            }
+            
+            public static float DeltaTime(bool realtime)
+            {
+                if (realtime)
+                {
+                    return UnityEngine.Time.unscaledDeltaTime;
+                }
+                else
+                {
+                    return UnityEngine.Time.deltaTime;
+                }
+            }
+            
+            public static float FixedDeltaTime(bool realtime)
+            {
+                if (realtime)
+                {
+                    return UnityEngine.Time.fixedUnscaledDeltaTime;
+                }
+                else
+                {
+                    return UnityEngine.Time.fixedDeltaTime;
+                }
+            }
+
+            public static IEnumerator Wait(float time, bool realtime)
+            {
+                if (realtime)
+                {
+                    yield return new WaitForSecondsRealtime(time);
+                }
+                else
+                {
+                    yield return new WaitForSeconds(time);
+                }
+            }
+        }
     }
 }

@@ -23,20 +23,27 @@ public class GameManager : Core
 {
     #region [ OBJECTS ]
 
-    private static GameManager instance = null;
+    DefaultPool DefaultPool;
+    [SerializeField] GameObject[] prefabs;
 
+    private static GameManager instance = null;
     public static Controls controlsInstance;
+    public static UIHandler UIHandler { get { return FindObjectOfType<UIHandler>(); } }
+    public static RoomLoader RoomLoader { get { return FindObjectOfType<RoomLoader>(); } }
+    public static PlayerManager PlayerManager { get { return FindObjectOfType<PlayerManager>(); } }
 
     public static GameObject WorldSpace { get { return GameObject.FindGameObjectWithTag("WorldSpace"); } }
+    public static PlayerController ClientPlayer;
 
     #endregion
 
     #region [ PROPERTIES ]
 
+    public static bool onLoad = true;
     public static bool goToStartScreen = true;
 
     public static bool isServer = false;
-
+    public static bool inRoom = false;
     public static bool isCursorLocked = false;
 
     public static bool exitEventStarted = false;
@@ -93,6 +100,10 @@ public class GameManager : Core
     {
         if (Application.isPlaying)
         {
+            if (onLoad)
+            {
+                Setup();
+            }
 #if UNITY_EDITOR
             EditorApplication.playModeStateChanged += OnModeChange;
 #endif
@@ -106,7 +117,14 @@ public class GameManager : Core
 
     void Update()
     {
-
+        if (UIHandler != null)
+        {
+            UIHandler.InputsUI();
+        }
+        if (ClientPlayer != null)
+        {
+            ClientPlayer.InputsPlayer();
+        }
     }
 
     void FixedUpdate()
@@ -121,14 +139,76 @@ public class GameManager : Core
             OnExitEvent();
         }
     }
-
-#if UNITY_EDITOR
     
-#endif
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+        base.OnRoomListUpdate(roomList);
+        RoomHandler.RoomListUpdate(roomList);
+    }
 
-#endregion
+    public override void OnJoinedRoom()
+    {
+        base.OnJoinedRoom();
+        GameManager.inRoom = true;
+        if (GameManager.isServer)
+        {
+            PhotonNetwork.LoadLevel("3_Gameplay");
+        }
+        else
+        {
+            if (PhotonNetwork.CurrentRoom.PlayerCount >= 0)
+            {
+                PhotonNetwork.LoadLevel("3_Gameplay");
+            }
+            else
+            {
+                PhotonNetwork.LoadLevel("2b_WaitingRoom");
+            }
+        }
+        PhotonNetwork.NickName = "<>";
+    }
+
+    public override void OnLeftRoom()
+    {
+        base.OnLeftRoom();
+        ClientPlayer = null;
+    }
+
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        base.OnPlayerEnteredRoom(newPlayer);
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        base.OnPlayerLeftRoom(otherPlayer);
+        PlayerManager.RemovePlayer(otherPlayer.NickName);
+    }
+
+    #endregion
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    private void Setup()
+    {
+        onLoad = false;
+        SetupPrefabPool();
+    }
+
+    private void SetupPrefabPool()
+    {
+        DefaultPool = PhotonNetwork.PrefabPool as DefaultPool;
+        if (prefabs.Length > 0)
+        {
+            foreach (GameObject prefab in prefabs)
+            {
+                if (!DefaultPool.ResourceCache.ContainsKey(prefab.name))
+                {
+                    DefaultPool.ResourceCache.Add(prefab.name, prefab);
+                }
+            }
+        }
+    }
 
     public static void OnExitEvent()
     {

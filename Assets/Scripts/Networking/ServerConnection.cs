@@ -37,6 +37,7 @@ public class ServerConnection : Core
 
     public override void OnConnectedToMaster()
     {
+        PhotonNetwork.JoinLobby();
         onConnected.Invoke();
     }
 

@@ -26,13 +26,16 @@ public class Projectile : Core
     [Header("Components")]
     [SerializeField] ProjectilePropulsion propulsion;
     public Rigidbody rb { get { return gameObject.GetComponent<Rigidbody>(); } }
+    //private PhotonView view;
 
     #endregion
 
     #region [ PROPERTIES ]
 
+    [HideInInspector] public bool activeVersion = false;
+
     [Header("Properties")]
-    [SerializeField] float primingDelay = 0.25f;
+    [SerializeField] float primingDelay = 0.05f;
     [SerializeField] float lifeTime = 5.0f;
     [SerializeField] Vector3 propulsionForce;
     private bool primed = false;
@@ -68,7 +71,7 @@ public class Projectile : Core
 
     private void FixedUpdate()
     {
-        if (useCustomGravity)
+        if (primed && useCustomGravity)
         {
             rb.AddForce(new Vector3(0.0f, -customGravity, 0.0f), ForceMode.Acceleration);
         }
@@ -79,7 +82,7 @@ public class Projectile : Core
         if (primed)
         {
             OnHit(collision);
-            Despawn(0.05f);
+            Despawn();
         }
     }
 
@@ -96,21 +99,21 @@ public class Projectile : Core
     private IEnumerator Lifetime()
     {
         yield return new WaitForSeconds(lifeTime);
-        Despawn(0.0f);
+        Despawn();
     }
 
-    private void Despawn(float delay)
+    private void Despawn()
     {
-        Destroy(gameObject, delay);
+        Destroy(gameObject, 0.000001f);
     }
 
     private void OnHit(Collision collision)
     {
         if (explode)
         {
-            Explosion xpl = Instantiate(explosion, GameManager.WorldSpace.transform, true);
             ContactPoint hit = collision.GetContact(0);
-            xpl.transform.position = hit.point;
+            Explosion xpl = Instantiate(explosion, hit.point, Quaternion.identity);
+            //Explosion xpl = PhotonNetwork.InstantiateRoomObject(explosion.name, hit.point, Quaternion.identity).GetComponent<Explosion>();
             xpl.damage = damage;
             xpl.radius = explosionRadius;
             xpl.Explode();

@@ -16,7 +16,9 @@ namespace NeoCambion
         North, NorthNorthEast, NorthEast, EastNorthEast,
         East, EastSouthEast, SouthEast, SouthSouthEast,
         South, SouthSouthWest, SouthWest, WestSouthWest,
-        West, WestNorthWest, NorthWest, NorthNorthWest };
+        West, WestNorthWest, NorthWest, NorthNorthWest
+    };
+    public enum RotDirection { Clockwise, CounterClockwise };
 
     public enum Condition_Number { Never, LessThan, LessThanOrEqualTo, EqualTo, GreaterThanOrEqualTo, GreaterThan, Always };
     public enum Condition_String { Never, Matches, DoesNotMatch, Contains, DoesNotContain, IsSubstring, IsNotSubstring, Always };
@@ -40,12 +42,12 @@ namespace NeoCambion
     {
         public static List<char> alphaNumUnderscore = new List<char>
         {
+            '_', '-',
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
             'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
             'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
             'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-            'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-            '_', '-'
+            'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
         };
 
         public static bool IsNullOrEmpty(this string text)
@@ -65,12 +67,26 @@ namespace NeoCambion
 
         public static bool ValidateString(this string text)
         {
-            return text.ValidateString(alphaNumUnderscore);
+            return text.ValidateString(alphaNumUnderscore, false);
+        }
+        
+        public static bool ValidateString(this string text, bool emptyInvalid)
+        {
+            return text.ValidateString(alphaNumUnderscore, emptyInvalid);
         }
 
         public static bool ValidateString(this string text, List<char> validChars)
         {
+            return text.ValidateString(validChars, false);
+        }
+        
+        public static bool ValidateString(this string text, List<char> validChars, bool emptyInvalid)
+        {
             bool textValid = true;
+            if (emptyInvalid && IsEmptyOrNullOrWhiteSpace(text))
+            {
+                textValid = false;
+            }
 
             int n = text.Length;
 

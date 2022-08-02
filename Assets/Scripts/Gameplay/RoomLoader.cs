@@ -12,10 +12,9 @@ public class RoomLoader : Core
 {
 	#region [ OBJECTS ]
 
-	[SerializeField] GameObject serverCam;
-	[SerializeField] GameObject loadingCam;
+	public GameObject serverCam;
+	public GameObject loadingCam;
 	[SerializeField] UIElement nameSetFrame;
-	private UIHandler_Room roomUI;
 
 	#endregion
 
@@ -40,11 +39,10 @@ public class RoomLoader : Core
 		serverCam.SetActive(GameManager.isServer);
 		loadingCam.SetActive(!GameManager.isServer);
 
-		roomUI = FindObjectOfType<UIHandler_Room>();
-		if (roomUI != null)
+		if (GameManager.UIHandler != null)
         {
-			roomUI.serverUI.SetActive(GameManager.isServer);
-			roomUI.playerUI.SetActive(!GameManager.isServer);
+			GameManager.UIHandler.serverUI.SetActive(GameManager.isServer);
+			GameManager.UIHandler.playerUI.SetActive(!GameManager.isServer);
 		}
     }
 
@@ -52,8 +50,8 @@ public class RoomLoader : Core
     {
 		if (!GameManager.isServer)
 		{
-			roomUI.ShowEscMenu(true);
-			roomUI.escMenu.SetActiveFrame(nameSetFrame);
+			GameManager.UIHandler.escMenu.ShowMenu(true);
+			GameManager.UIHandler.escMenu.SetActiveFrame(nameSetFrame);
 		}
 	}
 

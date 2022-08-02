@@ -46,6 +46,7 @@ public class Controls
     public List<string> categoryNames = new List<string>() { "General", "Movement", "Interaction", "Camera" };
     public List<string> controlNames = new List<string>()
     {
+        "Controls.General.EscMenu",
         "Controls.General.SeeRoomInfo",
         "Controls.Movement.Forward",
         "Controls.Movement.Left",
@@ -268,7 +269,10 @@ public class Controls
 
     public void SetControlByName(string controlName, KeyCode key)
     {
-        GetControlByName(controlName).Key = key;
+        if (key != KeyCode.Escape)
+        {
+            GetControlByName(controlName).Key = key;
+        }
     }
 }
 
@@ -276,6 +280,7 @@ public class Controls
 
 public class Controls_General
 {
+    public ControlInput EscMenu = new ControlInput("In-Match Menu", KeyCode.Escape);
     public ControlInput SeeRoomInfo = new ControlInput("See Match Info", KeyCode.Tab);
     public ControlInput[] controls;
 

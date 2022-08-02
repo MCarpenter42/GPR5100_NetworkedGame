@@ -24,13 +24,15 @@ public class PlayerManager : Core
     #region [ OBJECTS ]
 
     [SerializeField] GameObject playerPrefab;
-    [HideInInspector] public Dictionary<string, PlayerItem> players = new Dictionary<string, PlayerItem>();
+    [HideInInspector] public Dictionary<string, PlayerController> players = new Dictionary<string, PlayerController>();
+
+    [SerializeField] TMP_InputField inputName;
 
     #endregion
 
     #region [ PROPERTIES ]
 
-
+    [HideInInspector] public bool nameSet = false;
 
     #endregion
 
@@ -46,40 +48,7 @@ public class PlayerManager : Core
 
     void Awake()
     {
-        Player[] currentPlayers = PhotonNetwork.PlayerList;
-        string nameCheck = PhotonNetwork.NickName;
-        int nameMatches = 0;
-        foreach (Player plr in currentPlayers)
-        {
-            if (nameCheck == plr.NickName)
-            {
-                nameMatches++;
-            }
-        }
-        if (nameMatches > 0)
-        {
-            string newName = "";
-            int lastPos = nameCheck.LastIndexOf('_');
-            if (lastPos > 0)
-            {
-                string substrA = nameCheck.Substring(0, lastPos + 1);
-                string substrB = nameCheck.Substring(lastPos + 1);
-                int toInt = 0;
-                if (int.TryParse(substrB, out toInt))
-                {
-                    newName = substrA + (toInt + 1);
-                }
-                else
-                {
-                    newName = nameCheck + "_1";
-                }
-            }
-            else
-            {
-                newName = nameCheck + "_1";
-            }
-            PhotonNetwork.NickName = newName;
-        }
+        
     }
 
     void Start()
@@ -97,23 +66,72 @@ public class PlayerManager : Core
         
     }
 
-	#endregion
-
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-	
-}
-
-public class PlayerItem
-{
-    public string name = "";
-    public PlayerController controller;
-    public int score = 0;
+    #endregion
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-    public PlayerItem(string name, PlayerController controller)
+    public void TrySetName()
     {
-        this.name = name;
-        this.controller = controller;
+        string nameInput = inputName.text;
+        if (nameInput.ValidateString(true))
+        {
+            if (NameAvailable(nameInput))
+            {
+                PhotonNetwork.NickName = nameInput;
+                nameSet = true;
+                inputName.text = "";
+                GameManager.UIHandler.escMenu.activeFrame = 0;
+                GameManager.UIHandler.ToggleEscMenu();
+                SpawnPlayer();
+            }
+            else
+            {
+                DebugLogging.Error("#PlayerError_NicknameTaken");
+            }
+        }
+        else
+        {
+            DebugLogging.Error("#PlayerError_InvalidNickame");
+        }
+    }
+
+    public bool NameAvailable(string name)
+    {
+        Player[] currentPlayers = PhotonNetwork.PlayerList;
+        foreach (Player plr in currentPlayers)
+        {
+            if (name == plr.NickName)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void SpawnPlayer()
+    {
+        GameManager.UIHandler.blackScreen.SetActive(true);
+
+        Vector3 randomSpawnPos = new Vector3(0.0f, 0.5f, 0.0f);
+        GameObject playerObj = PhotonNetwork.Instantiate(playerPrefab.name, randomSpawnPos, Quaternion.identity);
+        PlayerController client = playerObj.GetComponent<PlayerController>();
+        client.SetAsClient(true);
+        GameManager.RoomLoader.loadingCam.SetActive(false);
+
+        AddPlayer(PhotonNetwork.NickName, client);
+
+        GameManager.UIHandler.blackScreen.SetActive(false);
+    }
+
+    [PunRPC]
+    public void AddPlayer(string name, PlayerController controller)
+    {
+        controller.playerName = name;
+        players.Add(name, controller);
+    }
+
+    public void RemovePlayer(string name)
+    {
+        players.Remove(name);
     }
 }

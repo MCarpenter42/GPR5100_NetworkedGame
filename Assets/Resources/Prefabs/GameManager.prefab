@@ -80,6 +80,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96521ebc5a6763649a1238eb3ba1f41b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  prefabs:
+  - {fileID: 6132685905119666750, guid: fa06e6a07f92b714bb83fcccb9eb2ee9, type: 3}
+  - {fileID: 8333641486839961658, guid: a9779ba061e868644b9571d93964b118, type: 3}
+  - {fileID: 8513381238804864287, guid: d7d5befe3d1eeb7438f7d0e6125dd58d, type: 3}
 --- !u!114 &3733823227390298417
 MonoBehaviour:
   m_ObjectHideFlags: 0

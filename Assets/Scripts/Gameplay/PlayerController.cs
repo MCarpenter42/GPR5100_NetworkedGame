@@ -33,12 +33,13 @@ public class PlayerController : Core
     [SerializeField] Transform body;
     [SerializeField] Transform cam;
     [SerializeField] Transform pitchPivot;
-    [SerializeField] Transform yawRotator;
 
     [HideInInspector] public Rigidbody rb { get { return gameObject.GetOrAddComponent<Rigidbody>(); } }
+    private PhotonView view { get { return gameObject.GetComponent<PhotonView>(); } }
 
     [Header("Player Properties")]
     public Color colour = Color.white;
+    [HideInInspector] public string playerName;
     [SerializeField] float moveSpeed = 3.0f;
     [SerializeField] float rotFactor = 5.0f;
     [Range(-15.0f, 15.0f)]
@@ -46,7 +47,7 @@ public class PlayerController : Core
     [Range(15.0f, 45.0f)]
     [SerializeField] float maxLookAngle = 30.0f;
 
-    public bool isFocusPlayer = false;
+    //public bool view.IsMine = false;
 
     [HideInInspector] public Vector3 direction = Vector3.zero;
     [HideInInspector] public float dirRot = 0.0f;
@@ -76,20 +77,12 @@ public class PlayerController : Core
 
     void Awake()
     {
-        if (isFocusPlayer)
-        {
-            camOffset = cam.position - pitchPivot.position;
-        }
-        else
-        {
-            cam.gameObject.SetActive(false);
-        }
         currentHealth = maxHealth;
     }
 
     void Start()
     {
-        if (isFocusPlayer)
+        if (view.IsMine)
         {
             LockCursor(true);
         }
@@ -97,7 +90,7 @@ public class PlayerController : Core
 
     void Update()
     {
-        if (isFocusPlayer)
+        if (view.IsMine && !GameManager.UIHandler.escMenu.framesVisible)
         {
             GetDirection();
             Rotate();
@@ -123,13 +116,27 @@ public class PlayerController : Core
 
     void FixedUpdate()
     {
-        Move();
+        if (view.IsMine)
+        {
+            Move();
+        }
     }
 
     #endregion
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    
+    public void InputsPlayer()
+    {
+        if (view.IsMine)
+        {
+            GetDirection();
+            Rotate();
+        }
+    }
 
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    
     private void GetDirection()
     {
         Vector3 dir = Vector3.zero;
@@ -233,21 +240,6 @@ public class PlayerController : Core
         }
 
         body.eulerAngles = bodyRot;
-
-        /*if (direction.magnitude > 0.0f)
-        {
-            yawRotator.transform.LookAt(transform.TransformDirection(direction));
-            float angle = Vector3.Angle(body.transform.forward, yawRotator.transform.forward);
-            Debug.Log(angle);
-            float bodyRotScale = 60.0f * Time.deltaTime;
-            angle = Mathf.Clamp(angle, 0.0f, bodyRotScale);
-            if (body.InverseTransformDirection(yawRotator.transform.forward).x < 0.0f)
-            {
-                angle *= -1.0f;
-            }
-            bodyRot.y += angle;
-        }
-        body.eulerAngles = bodyRot;*/
     }
 
     private void CameraDist()
@@ -263,6 +255,23 @@ public class PlayerController : Core
         {
             cam.transform.localPosition = camOffset;
         }
+    }
+
+    public void SetAsClient(bool set)
+    {
+        if (view.IsMine)
+        {
+            cam.gameObject.SetActive(true);
+            camOffset = cam.position - pitchPivot.position;
+        }
+        
+        //view.IsMine = set;
+        /*cam.gameObject.SetActive(set);
+        if (set)
+        {
+            camOffset = cam.position - pitchPivot.position;
+            GameManager.ClientPlayer = this;
+        }*/
     }
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

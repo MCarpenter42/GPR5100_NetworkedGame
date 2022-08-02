@@ -6,7 +6,7 @@ TagManager:
   tags:
   - Bullet
   - WorldSpace
-  - ErrorText_NameSet
+  - ErrorText
   layers:
   - Default
   - TransparentFX

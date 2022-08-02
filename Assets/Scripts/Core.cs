@@ -35,6 +35,9 @@ public class Core : MonoBehaviourPunCallbacks
         }
     }
 
+    public static Dictionary<string, RoomInfo> rooms = new Dictionary<string, RoomInfo>();
+    public static Dictionary<string, RoomInfo> roomsOpen = new Dictionary<string, RoomInfo>();
+
     #endregion
 
     #region [ ENUMERATION TYPES ]
@@ -47,7 +50,7 @@ public class Core : MonoBehaviourPunCallbacks
 
     #region [ GAME STATE ]
 
-    public static void LockCursor(bool lockCsr)
+    public void LockCursor(bool lockCsr)
     {
         GameManager.isCursorLocked = lockCsr;
         if (lockCsr)
@@ -66,7 +69,6 @@ public class Core : MonoBehaviourPunCallbacks
     {
         if (PhotonNetwork.IsConnected)
         {
-            Debug.Log("Disconnecting from Photon server...");
             PhotonNetwork.Disconnect();
         }
     }
@@ -100,4 +102,11 @@ public class Core : MonoBehaviourPunCallbacks
     }
 
     #endregion
+
+    [PunRPC]
+    public T InstantiateRPC<T>(T original, Vector3 position, Quaternion rotation) where T : MonoBehaviour
+    {
+        return Instantiate(original, position, rotation);
+    }
+
 }

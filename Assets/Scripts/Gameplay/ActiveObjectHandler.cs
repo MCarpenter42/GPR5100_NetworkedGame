@@ -7,23 +7,12 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEditor;
 using TMPro;
-using Photon;
-using Photon.Pun;
-using Photon.Chat;
-using Photon.Realtime;
 
-using NeoCambion;
-using NeoCambion.Collections;
-using NeoCambion.Encryption;
-using NeoCambion.Interpolation;
-using NeoCambion.Maths;
-using NeoCambion.Unity;
-
-public class SetPlayerName : Core
+public class ActiveObjectHandler : Core
 {
 	#region [ OBJECTS ]
-
-	[SerializeField] TMP_InputField input;
+	
+	
 	
 	#endregion
 

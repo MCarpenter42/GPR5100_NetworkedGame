@@ -24,7 +24,6 @@ public class ValueTracker : UIElement
 {
 	#region [ OBJECTS ]
 
-    private enum Track { PlayerHealth };
     private enum Visual { Scale, Rotate };
     private enum ScaleAnchor { BottomLeft, Centre, TopRight };
 
@@ -33,19 +32,18 @@ public class ValueTracker : UIElement
 	#region [ PROPERTIES ]
 
     [Header("Tracker Properties")]
-    [SerializeField] Track valueToTrack;
     [SerializeField] Visual visualRepres;
 
     [Header("Scale Settings")]
     [SerializeField] Axis scaleAxis;
     [SerializeField] ScaleAnchor scaleAnchor;
-    private Vector2 scaleAnchorPoint;
 
     [Header("RotationSettings")]
     [SerializeField] RotDirection rotDirection;
     [Range(0.0f, 360.0f)]
     [SerializeField] float maxAngle;
-    private Vector2 rotAnchorPoint;
+
+    private Vector2 anchorPoint;
 
     #endregion
 
@@ -77,6 +75,11 @@ public class ValueTracker : UIElement
         }
     }
 
+    void OnValidate()
+    {
+        SetAnchor();
+    }
+
     #endregion
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -89,5 +92,26 @@ public class ValueTracker : UIElement
         }
     }
 
+    private void SetAnchor()
+    {
+        if (visualRepres == Visual.Scale)
+        {
+            if (scaleAnchor == ScaleAnchor.BottomLeft)
+            {
+                anchorPoint = Vector2.zero;
+            }
+            else if (scaleAnchor == ScaleAnchor.TopRight)
+            {
+                anchorPoint = Vector2.one;
+            }
+            else
+            {
 
+            }
+        }
+        else
+        {
+
+        }
+    }
 }

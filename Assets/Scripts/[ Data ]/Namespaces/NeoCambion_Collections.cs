@@ -224,6 +224,58 @@ namespace NeoCambion
 
             #endregion
 
+            #region [ FIRST / LAST ]
+
+            public static T First<T>(this T[] array)
+            {
+                if (array.Length > 0)
+                {
+                    return array[0];
+                }
+                else
+                {
+                    return default;
+                }
+            }
+            
+            public static T First<T>(this List<T> list)
+            {
+                if (list.Count > 0)
+                {
+                    return list[0];
+                }
+                else
+                {
+                    return default;
+                }
+            }
+            
+            public static T Last<T>(this T[] array)
+            {
+                if (array.Length > 0)
+                {
+                    return array[array.Length - 1];
+                }
+                else
+                {
+                    return default;
+                }
+            }
+            
+            public static T Last<T>(this List<T> list)
+            {
+                if (list.Count > 0)
+                {
+                    return list[list.Count - 1];
+                }
+                else
+                {
+                    return default;
+                }
+            }
+
+            #endregion
+
             public static void Clear<T>(this T[] array)
             {
                 for (int i = 0; i < array.Length; i++)

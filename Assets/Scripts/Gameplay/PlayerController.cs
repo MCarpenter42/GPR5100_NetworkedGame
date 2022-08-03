@@ -29,6 +29,8 @@ public class PlayerController : Core
 
     #region [ PROPERTIES ]
 
+    #region < Components >
+
     [Header("Components")]
     [SerializeField] Transform body;
     [SerializeField] Transform cam;
@@ -36,6 +38,10 @@ public class PlayerController : Core
 
     [HideInInspector] public Rigidbody rb { get { return gameObject.GetOrAddComponent<Rigidbody>(); } }
     private PhotonView view { get { return gameObject.GetComponent<PhotonView>(); } }
+
+    #endregion
+
+    #region < Player Properties >
 
     [Header("Player Properties")]
     public Color colour = Color.white;
@@ -56,18 +62,29 @@ public class PlayerController : Core
     private float camYaw = 0.0f;
     private Vector3 camOffset = new Vector3();
 
+    #endregion
+
+    #region < Combat >
+
     [Header("Combat")]
-    [Range(1, 10)]
-    [SerializeField] int maxHealth;
+    [Range(1, 40)]
+    public int maxHealth = 10;
     [HideInInspector] public int currentHealth;
     [SerializeField] Weapon[] weapons = new Weapon[1];
     public int activeWeapon = 0;
+
+    [HideInInspector] bool damageCooldown = false;
+    [HideInInspector] bool canBeDamaged = true;
+    [HideInInspector] bool canBeHealed = true;
+    [HideInInspector] bool canShoot = true;
+
+    #endregion
 
     #endregion
 
     #region [ COROUTINES ]
 
-
+    private Coroutine DamageCooldown = null;
 
     #endregion
 
@@ -90,27 +107,9 @@ public class PlayerController : Core
 
     void Update()
     {
-        if (view.IsMine && !GameManager.UIHandler.escMenu.framesVisible)
+        if (view.IsMine)
         {
-            GetDirection();
-            Rotate();
             CameraDist();
-
-            if (GetInput(Controls.Shooting.PrimaryFire))
-            {
-                weapons[activeWeapon].PrimaryFire();
-            }
-            else if (GetInput(Controls.Shooting.SecondaryFire))
-            {
-                if (weapons[activeWeapon].hasSecondaryFire)
-                {
-                    weapons[activeWeapon].PrimaryFire();
-                }
-                else
-                {
-                    weapons[activeWeapon].SecondaryFire();
-                }
-            }
         }
     }
 
@@ -130,8 +129,29 @@ public class PlayerController : Core
     {
         if (view.IsMine)
         {
-            GetDirection();
-            Rotate();
+            if (!GameManager.UIHandler.escMenu.framesVisible)
+            {
+                GetDirection();
+                Rotate();
+                if (canShoot)
+                {
+                    if (GetInput(Controls.Shooting.PrimaryFire))
+                    {
+                        weapons[activeWeapon].PrimaryFire();
+                    }
+                    else if (GetInput(Controls.Shooting.SecondaryFire))
+                    {
+                        if (weapons[activeWeapon].hasSecondaryFire)
+                        {
+                            weapons[activeWeapon].PrimaryFire();
+                        }
+                        else
+                        {
+                            weapons[activeWeapon].SecondaryFire();
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -276,4 +296,64 @@ public class PlayerController : Core
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+    public void Damage(int damage)
+    {
+        if (canBeDamaged && !damageCooldown)
+        {
+            if (currentHealth >= damage)
+            {
+                currentHealth -= damage;
+            }
+            else
+            {
+                currentHealth = 0;
+            }
+            OnDamaged(damage);
+        }
+    }
+    
+    public void Heal(int healing)
+    {
+        if (canBeHealed)
+        {
+            if (currentHealth <= (maxHealth - healing))
+            {
+                currentHealth += healing;
+            }
+            else
+            {
+                currentHealth = maxHealth;
+            }
+            OnHealed(healing);
+        }
+    }
+
+    private void OnDamaged(int damage)
+    {
+        StartCoroutine(IDamageCooldown());
+        Debug.Log("Player \"" + playerName + "\" has taken " + damage + " damage! | " + Time.time);
+        if (view.IsMine)
+        {
+            GameManager.UIHandler.HUD.healthBar.DoUpdate(currentHealth, maxHealth, 0);
+        }
+    }
+
+    private void OnHealed(int healing)
+    {
+        if (view.IsMine)
+        {
+            GameManager.UIHandler.HUD.healthBar.DoUpdate(currentHealth, maxHealth, 1);
+        }
+    }
+
+    private IEnumerator IDamageCooldown()
+    {
+        damageCooldown = true;
+        int waitCount = (int)(0.1f / Time.fixedDeltaTime);
+        for (int i = 0; i < waitCount; i++)
+        {
+            yield return new WaitForFixedUpdate();
+        }
+        damageCooldown = false;
+    }
 }

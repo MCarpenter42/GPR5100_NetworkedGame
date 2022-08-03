@@ -1068,5 +1068,16 @@ namespace NeoCambion
                 return vect;
             }
         }
+
+        public static class UnityExt_Coroutine
+        {
+            public static void Stop(this Coroutine routine)
+            {
+                if (routine != null)
+                {
+                    GameObject.FindObjectOfType<MonoBehaviour>().StopCoroutine(routine);
+                }
+            }
+        }
     }
 }

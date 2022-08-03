@@ -60,7 +60,17 @@ public class Explosion : Core
         Vector3 randRot = new Vector3(Random.Range(0.0f, 360.0f), Random.Range(0.0f, 360.0f), Random.Range(0.0f, 360.0f));
         visuals.transform.eulerAngles = randRot;
 
-        float explosionDuration = 0.25f;
+        RaycastHit[] hitInfo = Physics.SphereCastAll(transform.position, radius, Vector3.zero);
+        foreach (RaycastHit hit in hitInfo)
+        {
+            GameObject obj = hit.collider.gameObject;
+            if (obj.HasComponent<PlayerController>())
+            {
+                obj.GetComponent<PlayerController>().Damage(damage);
+            }
+        }
+
+        float explosionDuration = 0.2f;
         float timePassed = 0.0f;
         while (timePassed <= explosionDuration)
         {

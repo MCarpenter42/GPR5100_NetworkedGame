@@ -50,7 +50,8 @@ public class UIHandler : Core
     public GameObject blackScreen;
     public GameObject serverUI;
     public GameObject playerUI;
-    public Menu escMenu;
+    [HideInInspector] public HUD HUD;
+    [HideInInspector] public Menu escMenu;
 
     #endregion
 
@@ -77,6 +78,8 @@ public class UIHandler : Core
         {
             usePlayerUI = !GameManager.isServer;
             playerUI.SetActive(usePlayerUI);
+            HUD = playerUI.GetComponentsInChildren<HUD>().First();
+            escMenu = playerUI.GetComponentsInChildren<Menu>().First();
             serverUI.SetActive(!usePlayerUI);
         }
         else if (GameManager.isCursorLocked)

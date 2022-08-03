@@ -23,14 +23,6 @@ public class PlayerController : Core
 {
     #region [ OBJECTS ]
 
-
-
-    #endregion
-
-    #region [ PROPERTIES ]
-
-    #region < Components >
-
     [Header("Components")]
     [SerializeField] Transform body;
     [SerializeField] Transform cam;
@@ -41,6 +33,8 @@ public class PlayerController : Core
 
     #endregion
 
+    #region [ PROPERTIES ]
+
     #region < Player Properties >
 
     [Header("Player Properties")]
@@ -48,9 +42,9 @@ public class PlayerController : Core
     [HideInInspector] public string playerName;
     [SerializeField] float moveSpeed = 3.0f;
     [SerializeField] float rotFactor = 5.0f;
-    [Range(-15.0f, 15.0f)]
+    [Range(-30.0f, 30.0f)]
     [SerializeField] float minLookAngle = -15.0f;
-    [Range(15.0f, 45.0f)]
+    [Range(30.0f, 90.0f)]
     [SerializeField] float maxLookAngle = 30.0f;
 
     //public bool view.IsMine = false;
@@ -109,6 +103,7 @@ public class PlayerController : Core
     {
         if (view.IsMine)
         {
+            Inputs();
             CameraDist();
         }
     }
@@ -125,7 +120,7 @@ public class PlayerController : Core
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
     
-    public void InputsPlayer()
+    public void Inputs()
     {
         if (view.IsMine)
         {
@@ -133,24 +128,7 @@ public class PlayerController : Core
             {
                 GetDirection();
                 Rotate();
-                if (canShoot)
-                {
-                    if (GetInput(Controls.Shooting.PrimaryFire))
-                    {
-                        weapons[activeWeapon].PrimaryFire();
-                    }
-                    else if (GetInput(Controls.Shooting.SecondaryFire))
-                    {
-                        if (weapons[activeWeapon].hasSecondaryFire)
-                        {
-                            weapons[activeWeapon].PrimaryFire();
-                        }
-                        else
-                        {
-                            weapons[activeWeapon].SecondaryFire();
-                        }
-                    }
-                }
+                Shooting();
             }
         }
     }
@@ -191,6 +169,7 @@ public class PlayerController : Core
     private void Rotate()
     {
         Vector3 bodyRot = body.eulerAngles;
+        bodyRot.y = bodyRot.y.WrapClamp(0.0f, 360.0f);
 
         if (GameManager.isCursorLocked)
         {
@@ -208,52 +187,108 @@ public class PlayerController : Core
 
             transform.eulerAngles = new Vector3(0.0f, camYaw, 0.0f);
             pitchPivot.localEulerAngles = new Vector3(-camPitch, 0.0f, 0.0f);
+            float displayAngle = pitchPivot.localEulerAngles.x;
+            if (displayAngle != 0.0f)
+            {
+                displayAngle = 360.0f - displayAngle;
+            }
+            GameManager.UIHandler.HUD.weaponElevation.DoUpdate(displayAngle, 90.0f, false);
         }
 
         if (direction.magnitude > 0.0f)
         {
             float yRotLocal = 0.0f;
-            if (direction.x > 0.0f)
+
+            if (direction.magnitude > 0.0f)
             {
-                if (direction.z > 0.0f)
+                if (direction.x > 0.0f)
                 {
-                    yRotLocal = 45.0f;
+                    if (direction.z > 0.0f)
+                    {
+                        yRotLocal = 45.0f;
+                    }
+                    else if (direction.z < 0.0f)
+                    {
+                        yRotLocal = 135.0f;
+                    }
+                    else
+                    {
+                        yRotLocal = 90.0f;
+                    }
                 }
-                else if (direction.z < 0.0f)
+                else if (direction.x < 0.0f)
                 {
-                    yRotLocal = 135.0f;
+                    if (direction.z > 0.0f)
+                    {
+                        yRotLocal = 315.0f;
+                    }
+                    else if (direction.z < 0.0f)
+                    {
+                        yRotLocal = 225.0f;
+                    }
+                    else
+                    {
+                        yRotLocal = 270.0f;
+                    }
                 }
                 else
                 {
-                    yRotLocal = 90.0f;
+                    if (direction.z < 0.0f)
+                    {
+                        yRotLocal = 180.0f;
+                    }
                 }
             }
-            else if (direction.x < 0.0f)
+            {/*else if (rb.velocity.magnitude > 0.1f)
             {
-                if (direction.z > 0.0f)
+                Debug.Log(rb.velocity.magnitude);
+                yRotLocal = rb.velocity.AngleFromAxis(DualAxis.XZ, true).WrapClamp(0.0f, 360.0f);
                 {
-                    yRotLocal = 315.0f;
+                *//*Vector3 vel = transform.InverseTransformDirection(rb.velocity);
+                if (vel.x > 0.0f)
+                {
+                    if (vel.z > 0.0f)
+                    {
+                        yRotLocal = 45.0f;
+                    }
+                    else if (vel.z < 0.0f)
+                    {
+                        yRotLocal = 135.0f;
+                    }
+                    else
+                    {
+                        yRotLocal = 90.0f;
+                    }
                 }
-                else if (direction.z < 0.0f)
+                else if (vel.x < 0.0f)
                 {
-                    yRotLocal = 225.0f;
+                    if (vel.z > 0.0f)
+                    {
+                        yRotLocal = 315.0f;
+                    }
+                    else if (vel.z < 0.0f)
+                    {
+                        yRotLocal = 225.0f;
+                    }
+                    else
+                    {
+                        yRotLocal = 270.0f;
+                    }
                 }
                 else
                 {
-                    yRotLocal = 270.0f;
+                    if (vel.z < 0.0f)
+                    {
+                        yRotLocal = 180.0f;
+                    }
+                }*//*
                 }
-            }
-            else
-            {
-                if (direction.z < 0.0f)
-                {
-                    yRotLocal = 180.0f;
-                }
-            }
+            }*/}
+            
             if (body.localEulerAngles.y != yRotLocal)
             {
                 float angle = (yRotLocal - body.localEulerAngles.y).WrapClamp(-180.0f, 180.0f);
-                float bodyRotScale = 80.0f * Time.deltaTime;
+                float bodyRotScale = 270.0f * Time.deltaTime;
                 angle = Mathf.Clamp(angle, -bodyRotScale, bodyRotScale);
                 bodyRot.y += angle;
             }
@@ -262,11 +297,27 @@ public class PlayerController : Core
         body.eulerAngles = bodyRot;
     }
 
+    private void Shooting()
+    {
+        if (canShoot)
+        {
+            if (GetInput(Controls.Shooting.PrimaryFire) || (GetInput(Controls.Shooting.SecondaryFire) && !weapons[activeWeapon].hasSecondaryFire))
+            {
+                weapons[activeWeapon].PrimaryFire();
+            }
+            else if (GetInput(Controls.Shooting.SecondaryFire))
+            {
+                weapons[activeWeapon].SecondaryFire();
+            }
+        }
+    }
+
     private void CameraDist()
     {
-        Vector3 dir = camOffset.normalized;
+        Vector3 dir = pitchPivot.transform.TransformDirection(camOffset.normalized);
+        dir.y = camOffset.normalized.y;
         float dist = camOffset.magnitude;
-        if (Physics.Raycast(pitchPivot.transform.position, pitchPivot.transform.TransformDirection(dir), out RaycastHit hit, dist + 0.25f))
+        if (Physics.Raycast(pitchPivot.transform.position, dir, out RaycastHit hit, dist + 0.25f))
         {
             Vector3 hitOffset = pitchPivot.transform.InverseTransformPoint(hit.point);
             cam.transform.localPosition = hitOffset.normalized * (hitOffset.magnitude - 0.25f);
@@ -298,8 +349,9 @@ public class PlayerController : Core
 
     public void Damage(int damage)
     {
-        if (canBeDamaged && !damageCooldown)
+        if (canBeDamaged)
         {
+        Debug.Log("Player \"" + playerName + "\" has taken " + damage + " damage! | " + Time.time);
             if (currentHealth >= damage)
             {
                 currentHealth -= damage;
@@ -330,8 +382,7 @@ public class PlayerController : Core
 
     private void OnDamaged(int damage)
     {
-        StartCoroutine(IDamageCooldown());
-        Debug.Log("Player \"" + playerName + "\" has taken " + damage + " damage! | " + Time.time);
+        //StartCoroutine(IDamageCooldown());
         if (view.IsMine)
         {
             GameManager.UIHandler.HUD.healthBar.DoUpdate(currentHealth, maxHealth, 0);

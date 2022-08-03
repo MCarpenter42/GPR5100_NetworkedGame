@@ -28,8 +28,6 @@ public class PlayerManager : Core
 
     [SerializeField] TMP_InputField inputName;
 
-    private HUD hud { get { return GameManager.UIHandler.HUD; } }
-
     #endregion
 
     #region [ PROPERTIES ]
@@ -55,7 +53,10 @@ public class PlayerManager : Core
 
     void Start()
     {
-        hud.ShowHealthBar(false);
+        if (GameManager.UIHandler.HUD != null && GameManager.UIHandler.HUD.healthBar != null)
+        {
+            GameManager.UIHandler.HUD.ShowHealthBar(false);
+        }
     }
 	
     void Update()
@@ -122,8 +123,9 @@ public class PlayerManager : Core
 
         AddPlayer(PhotonNetwork.NickName, client);
 
-        hud.ShowHealthBar(true);
-        hud.healthBar.DoUpdate(client.currentHealth, client.maxHealth, true, 1);
+        GameManager.UIHandler.HUD.ShowHealthBar(true);
+        GameManager.UIHandler.HUD.healthBar.DoUpdate(client.currentHealth, client.maxHealth, true, 1);
+
         GameManager.UIHandler.blackScreen.SetActive(false);
     }
 

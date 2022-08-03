@@ -47,6 +47,7 @@ public class ValueTracker : UIElement
     [SerializeField] Visual visualRepres;
     [SerializeField] RectTransform scaleFrom;
     [SerializeField] bool startFull = true;
+    [SerializeField] bool maxInLabel = true;
 
     private Vector2 anchor;
     private Vector2 defaultSize;
@@ -184,6 +185,9 @@ public class ValueTracker : UIElement
         }
         else
         {
+            minAngle *= -1.0f;
+            maxAngle *= -1.0f;
+
             if (startFull)
             {
                 rot.z = maxAngle;
@@ -215,9 +219,20 @@ public class ValueTracker : UIElement
         {
             UpdateAnim();
         }
+        else
+        {
+            UpdateNoAnim();
+        }
         if (label != null)
         {
-            label.text = sourceValue + " / " + (int)sourceMax;
+            if (maxInLabel)
+            {
+                label.text = sourceValue + " / " + (int)sourceMax;
+            }
+            else
+            {
+                label.text = sourceValue.ToString();
+            }
         }
     }
 
@@ -229,9 +244,20 @@ public class ValueTracker : UIElement
         {
             UpdateAnim();
         }
+        else
+        {
+            UpdateNoAnim();
+        }
         if (label != null)
         {
-            label.text = sourceValue + " / " + sourceMax;
+            if (maxInLabel)
+            {
+                label.text = sourceValue + " / " + sourceMax;
+            }
+            else
+            {
+                label.text = sourceValue.ToString();
+            }
         }
     }
     
@@ -252,9 +278,20 @@ public class ValueTracker : UIElement
         {
             UpdateAnim();
         }
+        else
+        {
+            UpdateNoAnim();
+        }
         if (label != null)
         {
-            label.text = sourceValue + " / " + sourceMax;
+            if (maxInLabel)
+            {
+                label.text = (int)sourceValue + " / " + (int)sourceMax;
+            }
+            else
+            {
+                label.text = ((int)sourceValue).ToString();
+            }
         }
     }
 
@@ -266,9 +303,20 @@ public class ValueTracker : UIElement
         {
             UpdateAnim();
         }
+        else
+        {
+            UpdateNoAnim();
+        }
         if (label != null)
         {
-            label.text = sourceValue + " / " + sourceMax;
+            if (maxInLabel)
+            {
+                label.text = (int)sourceValue + " / " + (int)sourceMax;
+            }
+            else
+            {
+                label.text = ((int)sourceValue).ToString();
+            }
         }
     }
     
@@ -284,28 +332,50 @@ public class ValueTracker : UIElement
     
     public void DoUpdate(int sourceValue, bool doAnim, long flashColourIndex)
     {
-        this.sourceValue = (float)sourceValue;
+        this.sourceValue = sourceValue;
         if (doAnim)
         {
             UpdateAnim((int)flashColourIndex);
         }
+        else
+        {
+            UpdateNoAnim();
+        }
         if (label != null)
         {
-            label.text = sourceValue + " / " + (int)sourceMax;
+            if (maxInLabel)
+            {
+                label.text = sourceValue + " / " + (int)sourceMax;
+            }
+            else
+            {
+                label.text = sourceValue.ToString();
+            }
         }
     }
 
     public void DoUpdate(int sourceValue, int sourceMax, bool doAnim, long flashColourIndex)
     {
-        this.sourceValue = (float)sourceValue;
-        this.sourceMax = (float)sourceMax;
+        this.sourceValue = sourceValue;
+        this.sourceMax = sourceMax;
         if (doAnim)
         {
             UpdateAnim((int)flashColourIndex);
         }
+        else
+        {
+            UpdateNoAnim();
+        }
         if (label != null)
         {
-            label.text = sourceValue + " / " + sourceMax;
+            if (maxInLabel)
+            {
+                label.text = sourceValue + " / " + sourceMax;
+            }
+            else
+            {
+                label.text = sourceValue.ToString();
+            }
         }
     }
     
@@ -326,9 +396,20 @@ public class ValueTracker : UIElement
         {
             UpdateAnim((int)flashColourIndex);
         }
+        else
+        {
+            UpdateNoAnim();
+        }
         if (label != null)
         {
-            label.text = sourceValue + " / " + sourceMax;
+            if (maxInLabel)
+            {
+                label.text = (int)sourceValue + " / " + (int)sourceMax;
+            }
+            else
+            {
+                label.text = ((int)sourceValue).ToString();
+            }
         }
     }
 
@@ -340,9 +421,20 @@ public class ValueTracker : UIElement
         {
             UpdateAnim((int)flashColourIndex);
         }
+        else
+        {
+            UpdateNoAnim();
+        }
         if (label != null)
         {
-            label.text = sourceValue + " / " + sourceMax;
+            if (maxInLabel)
+            {
+                label.text = (int)sourceValue + " / " + (int)sourceMax;
+            }
+            else
+            {
+                label.text = ((int)sourceValue).ToString();
+            }
         }
     }
 
@@ -418,28 +510,17 @@ public class ValueTracker : UIElement
         }
         else
         {
-            yield return null;
+            yield return new WaitForEndOfFrame();
         }
         targetRect.sizeDelta = sizeEnd;
     }
 
     private IEnumerator IUpdateAnim_Rotate(float animDuration, int flashColourIndex)
     {
-        float rotStart = targetRect.localEulerAngles.z.WrapClamp(0.0f, 360.0f);
+        float rotStart = targetRect.eulerAngles.z.WrapClamp(-360.0f, 0.0f);
         float rotAngle;
         float rotDiff = maxAngle - minAngle;
         if (positiveRotDir == RotDirection.Clockwise)
-        {
-            if (rotDiff >= 0.0f)
-            {
-                rotAngle = rotDiff;
-            }
-            else
-            {
-                rotAngle = rotDiff + 360.0f;
-            }
-        }
-        else
         {
             if (rotDiff <= 0.0f)
             {
@@ -448,6 +529,17 @@ public class ValueTracker : UIElement
             else
             {
                 rotAngle = rotDiff - 360.0f;
+            }
+        }
+        else
+        {
+            if (rotDiff >= 0.0f)
+            {
+                rotAngle = rotDiff;
+            }
+            else
+            {
+                rotAngle = rotDiff + 360.0f;
             }
         }
         float rotEnd = rotStart + rotAngle;
@@ -475,15 +567,64 @@ public class ValueTracker : UIElement
                 timePassed += Time.deltaTime;
                 float delta = timePassed / animDuration;
                 float rotZ = Mathf.Lerp(rotStart, rotEnd, delta);
-                targetRect.localEulerAngles = targetRect.localEulerAngles.SetAxis(Axis.Z, rotZ);
+                targetRect.eulerAngles = targetRect.eulerAngles.SetAxis(Axis.Z, rotZ);
             }
         }
         else
         {
-            yield return null;
+            yield return new WaitForEndOfFrame();
         }
-        targetRect.localEulerAngles = targetRect.localEulerAngles.SetAxis(Axis.Z, rotEnd);
+        targetRect.eulerAngles = targetRect.eulerAngles.SetAxis(Axis.Z, rotEnd);
     }
 
+    private void UpdateNoAnim()
+    {
+        if (visualRepres == Visual.Scale)
+        {
+            UpdateNoAnim_Scale();
+        }
+        else
+        {
+            UpdateNoAnim_Rotate();
+        }
+    }
+    
+    private void UpdateNoAnim_Scale()
+    {
+        Vector2 sizeStart = targetRect.sizeDelta;
+        Vector2 sizeEnd = defaultSize - (sizeRange * (1.0f - (sourceValue / sourceMax)));
+        targetRect.sizeDelta = sizeEnd;
+    }
+    
+    private void UpdateNoAnim_Rotate()
+    {
+        float rotAngle;
+        float rotDiff = maxAngle - minAngle;
+        if (positiveRotDir == RotDirection.Clockwise)
+        {
+            if (rotDiff <= 0.0f)
+            {
+                rotAngle = rotDiff;
+            }
+            else
+            {
+                rotAngle = rotDiff - 360.0f;
+            }
+        }
+        else
+        {
+            if (rotDiff >= 0.0f)
+            {
+                rotAngle = rotDiff;
+            }
+            else
+            {
+                rotAngle = rotDiff + 360.0f;
+            }
+        }
+        float rotEnd = minAngle + rotAngle * (sourceValue/sourceMax);
+        targetRect.eulerAngles = targetRect.eulerAngles.SetAxis(Axis.Z, rotEnd);
+    }
+    
     #endregion
 }

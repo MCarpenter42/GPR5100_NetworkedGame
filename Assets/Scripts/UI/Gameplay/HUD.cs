@@ -25,6 +25,8 @@ public class HUD : UIElement
 
     [Header("Components")]
     public ValueTracker healthBar;
+    public ValueTracker weaponElevation;
+    public ValueTracker weaponCooldown;
 
     #endregion
 

@@ -21,22 +21,33 @@ using NeoCambion.Unity;
 
 public class Weapon : Core
 {
-    #region [ OBJECTS ]
-
+    [Header("Weapon Properties")]
 	[SerializeField] Transform firePoint;
+
+    [Header("Primary Fire")]
     [SerializeField] Projectile primaryProjectile;
+    [SerializeField] float primaryFireCooldown = 0.5f;
+
+    [Header("Secondary Fire")]
     [SerializeField] Projectile secondaryProjectile;
-
-    #endregion
-
-    #region [ PROPERTIES ]
+    [SerializeField] bool enableSecondaryFire = false;
+    [SerializeField] float secondaryFireCooldown = 0.5f;
+    public bool hasSecondaryFire
+    {
+        get
+        {
+            if (secondaryProjectile == null)
+            {
+                return false;
+            }
+            else
+            {
+                return enableSecondaryFire;
+            }
+        }
+    }
 
     [HideInInspector] public bool onCooldown = false;
-    [SerializeField] float primaryFireCooldown = 0.5f;
-    public bool hasSecondaryFire { get { return secondaryProjectile != null; } }
-    [SerializeField] float secondaryFireCooldown = 0.5f;
-
-    #endregion
 
     #region [ COROUTINES ]
 
@@ -56,16 +67,17 @@ public class Weapon : Core
         }
     }
 
-	#endregion
+    #endregion
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-	
+
     public void PrimaryFire()
     {
         if (!onCooldown)
         {
-            //PhotonNetwork.InstantiateRoomObject(primaryProjectile.name, firePoint.transform.position, firePoint.rotation);
-            InstantiateRPC(primaryProjectile, firePoint.transform.position, firePoint.rotation);
+            Projectile prj = InstantiateRPC(primaryProjectile, firePoint.position, Quaternion.identity);
+            prj.gameObject.transform.eulerAngles = firePoint.eulerAngles;
+            prj.Fire();
             cooldown = StartCoroutine(Cooldown(primaryFireCooldown));
         }
     }
@@ -74,6 +86,9 @@ public class Weapon : Core
     {
         if (!onCooldown)
         {
+            Projectile prj = InstantiateRPC(secondaryProjectile, firePoint.position, Quaternion.identity);
+            prj.gameObject.transform.eulerAngles = firePoint.eulerAngles;
+            prj.Fire();
             cooldown = StartCoroutine(Cooldown(secondaryFireCooldown));
         }
     }

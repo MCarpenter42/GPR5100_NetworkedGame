@@ -60,13 +60,13 @@ public class Explosion : Core
         Vector3 randRot = new Vector3(Random.Range(0.0f, 360.0f), Random.Range(0.0f, 360.0f), Random.Range(0.0f, 360.0f));
         visuals.transform.eulerAngles = randRot;
 
-        RaycastHit[] hitInfo = Physics.SphereCastAll(transform.position, radius, Vector3.zero);
-        foreach (RaycastHit hit in hitInfo)
+        foreach (KeyValuePair<string, PlayerController> playerItem in GameManager.PlayerManager.players)
         {
-            GameObject obj = hit.collider.gameObject;
-            if (obj.HasComponent<PlayerController>())
+            PlayerController player = playerItem.Value;
+            float dist = (player.transform.position - transform.position).magnitude;
+            if (dist <= radius)
             {
-                obj.GetComponent<PlayerController>().Damage(damage);
+                player.Damage(damage);
             }
         }
 

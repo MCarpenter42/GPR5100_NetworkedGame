@@ -24,9 +24,8 @@ public class Projectile : Core
     #region [ OBJECTS ]
 
     [Header("Components")]
-    [SerializeField] ProjectilePropulsion propulsion;
+    [SerializeField] Transform propulsionPoint;
     public Rigidbody rb { get { return gameObject.GetComponent<Rigidbody>(); } }
-    //private PhotonView view;
 
     #endregion
 
@@ -37,11 +36,14 @@ public class Projectile : Core
     [Header("Properties")]
     [SerializeField] float primingDelay = 0.05f;
     [SerializeField] float lifeTime = 5.0f;
+    [SerializeField] bool selfPropelled = true;
     [SerializeField] Vector3 propulsionForce;
     private bool primed = false;
     [SerializeField] bool useCustomGravity;
     [Range(0.0f, 20.0f)]
     [SerializeField] float customGravity = 0.0f;
+
+    private bool propulsionEnabled = false;
 
     [Header("Effects")]
     [Range(1, 10)]
@@ -63,17 +65,28 @@ public class Projectile : Core
         {
             lifeTime = primingDelay + 2.0f;
         }
-        propulsion.force = propulsionForce;
         rb.useGravity = !useCustomGravity;
         StartCoroutine(Prime());
         StartCoroutine(Lifetime());
     }
 
-    private void FixedUpdate()
+    void FixedUpdate()
     {
-        if (primed && useCustomGravity)
+        if (useCustomGravity)
         {
             rb.AddForce(new Vector3(0.0f, -customGravity, 0.0f), ForceMode.Acceleration);
+        }
+
+        if (selfPropelled && propulsionEnabled)
+        {
+            Vector3 force = transform.TransformDirection(propulsionForce);
+            rb.AddForceAtPosition(force, propulsionPoint.position, ForceMode.Force);
+        }
+
+        if (rb.velocity.magnitude > 0.0f)
+        {
+            Vector3 lookPoint = transform.position + rb.velocity.normalized;
+            transform.LookAt(lookPoint);
         }
     }
 
@@ -89,6 +102,20 @@ public class Projectile : Core
     #endregion
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    public void Fire()
+    {
+        if (selfPropelled && propulsionPoint != null)
+        {
+            propulsionEnabled = true;
+        }
+        else
+        {
+            float impulseMulti = 0.1f;
+            Vector3 force = transform.TransformDirection(propulsionForce * impulseMulti);
+            rb.AddRelativeForce(force, ForceMode.Impulse);
+        }
+    }
 
     private IEnumerator Prime()
     {

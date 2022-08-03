@@ -116,5 +116,65 @@ namespace NeoCambion
                 }
             }
         }
+
+        public static class VectorMaths
+        {
+            public static float AngleFromAxis(this Vector3 vect, DualAxis plane, bool measureFromSecond)
+            {
+                Vector2 vectConv;
+                switch (plane)
+                {
+                    case DualAxis.XY:
+                        if (measureFromSecond)
+                        {
+                            vectConv.x = vect.y;
+                            vectConv.y = vect.x;
+                        }
+                        else
+                        {
+                            vectConv.x = vect.x;
+                            vectConv.y = vect.y;
+                        }
+                        break;
+
+                    default:
+                    case DualAxis.XZ:
+                        if (measureFromSecond)
+                        {
+                            vectConv.x = vect.z;
+                            vectConv.y = vect.x;
+                        }
+                        else
+                        {
+                            vectConv.x = vect.x;
+                            vectConv.y = vect.z;
+                        }
+                        break;
+
+                    case DualAxis.YZ:
+                        if (measureFromSecond)
+                        {
+                            vectConv.x = vect.z;
+                            vectConv.y = vect.y;
+                        }
+                        else
+                        {
+                            vectConv.x = vect.y;
+                            vectConv.y = vect.z;
+                        }
+                        break;
+                }
+                vectConv.Normalize();
+                float angle = Vector2.Angle(Vector2.up, vectConv);
+                if (vectConv.x >= 0.0f)
+                {
+                    return angle;
+                }
+                else
+                {
+                    return -angle;
+                }
+            }
+        }
     }
 }

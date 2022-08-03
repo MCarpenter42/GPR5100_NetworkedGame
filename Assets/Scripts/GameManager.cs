@@ -121,10 +121,6 @@ public class GameManager : Core
         {
             UIHandler.InputsUI();
         }
-        if (ClientPlayer != null)
-        {
-            ClientPlayer.InputsPlayer();
-        }
     }
 
     void FixedUpdate()

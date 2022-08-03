@@ -351,7 +351,6 @@ public class PlayerController : Core
     {
         if (canBeDamaged)
         {
-        Debug.Log("Player \"" + playerName + "\" has taken " + damage + " damage! | " + Time.time);
             if (currentHealth >= damage)
             {
                 currentHealth -= damage;

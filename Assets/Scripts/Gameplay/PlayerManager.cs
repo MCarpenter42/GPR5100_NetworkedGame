@@ -28,6 +28,8 @@ public class PlayerManager : Core
 
     [SerializeField] TMP_InputField inputName;
 
+    private SpawnPoint[] spawnPoints;
+
     #endregion
 
     #region [ PROPERTIES ]
@@ -48,7 +50,7 @@ public class PlayerManager : Core
 
     void Awake()
     {
-        
+        spawnPoints = FindObjectsOfType<SpawnPoint>();
     }
 
     void Start()
@@ -59,16 +61,6 @@ public class PlayerManager : Core
         }
     }
 	
-    void Update()
-    {
-        
-    }
-
-    void FixedUpdate()
-    {
-        
-    }
-
     #endregion
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -115,7 +107,25 @@ public class PlayerManager : Core
     {
         GameManager.UIHandler.blackScreen.SetActive(true);
 
-        Vector3 randomSpawnPos = new Vector3(0.0f, 0.5f, 0.0f);
+        Vector3 randomSpawnPos = Vector3.zero;
+        /*if (spawnPoints.Length > 0)
+        {
+            List<SpawnPoint> available = spawnPoints.ToList();
+            for (int i = 0; i < spawnPoints.Length; i++)
+            {
+                int r = Random.Range(1, available.Count) - 1;
+                if (available[r].IsValid(5.0f))
+                {
+                    randomSpawnPos = available[r].pos;
+                }
+                else
+                {
+                    available.RemoveAt(r);
+                }
+            }
+        }*/
+        randomSpawnPos.y = 0.3f;
+
         GameObject playerObj = PhotonNetwork.Instantiate(playerPrefab.name, randomSpawnPos, Quaternion.identity);
         PlayerController client = playerObj.GetComponent<PlayerController>();
         client.SetAsClient(true);
@@ -132,10 +142,18 @@ public class PlayerManager : Core
     [PunRPC]
     public void AddPlayer(string name, PlayerController controller)
     {
-        controller.playerName = name;
-        players.Add(name, controller);
+        if (players.ContainsKey(name))
+        {
+            players[name] = controller;
+        }
+        else
+        {
+            controller.playerName = name;
+            players.Add(name, controller);
+        }
     }
 
+    [PunRPC]
     public void RemovePlayer(string name)
     {
         players.Remove(name);

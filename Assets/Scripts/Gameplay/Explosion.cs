@@ -29,8 +29,8 @@ public class Explosion : Core
 
 	#region [ PROPERTIES ]
 
-	[HideInInspector] public int damage = 1;
-    [HideInInspector] public float radius = 1.0f;
+	public int damage = 1;
+    public float radius = 1.0f;
 
     #endregion
 
@@ -76,10 +76,10 @@ public class Explosion : Core
         {
             yield return null;
             timePassed += Time.deltaTime;
-            float delta = InterpDelta.CosSlowDown(timePassed / explosionDuration);
-            visuals.transform.localScale = Vector3.one * radius * delta;
+            float deltaRadius = InterpDelta.CosSlowDown(timePassed / explosionDuration) * radius;
+            visuals.transform.localScale = Vector3.one * deltaRadius * 2.0f;
         }
-        visuals.transform.localScale = Vector3.one * radius;
+        visuals.transform.localScale = Vector3.one * radius * 2.0f;
         Destroy(gameObject, 0.05f);
     }
 }

@@ -67,10 +67,13 @@ public class PlayerController : Core
     [SerializeField] Weapon[] weapons = new Weapon[1];
     public int activeWeapon = 0;
 
+    [HideInInspector] bool alive = true;
     [HideInInspector] bool damageCooldown = false;
     [HideInInspector] bool canBeDamaged = true;
     [HideInInspector] bool canBeHealed = true;
     [HideInInspector] bool canShoot = true;
+
+    [HideInInspector] int kills = 0;
 
     #endregion
 

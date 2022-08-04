@@ -250,4 +250,4 @@ MonoBehaviour:
   damage: 1
   explode: 1
   explosion: {fileID: 6471772899862281641, guid: d7d5befe3d1eeb7438f7d0e6125dd58d, type: 3}
-  explosionRadius: 4
+  explosionRadius: 2

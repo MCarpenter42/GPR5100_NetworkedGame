@@ -24,7 +24,7 @@ public class ValueTracker : UIElement
 {
 	#region [ ENUMERATION TYPES ]
 
-    private enum Visual { Scale, Rotate };
+    private enum Visual { Scale, Rotate, TimeText };
     private enum ScaleDir { X, Y, Both };
     private enum ScaleAnchor { BottomLeft, Centre, TopRight };
     private enum ScaleAnim { None, Slide, Segment };
@@ -38,6 +38,7 @@ public class ValueTracker : UIElement
     [SerializeField] RectTransform targetRect;
     [SerializeField] Graphic targetGraphic;
     [SerializeField] TMP_Text label;
+    [SerializeField] TMP_Text label_secondary;
 
 	#endregion
 
@@ -108,12 +109,15 @@ public class ValueTracker : UIElement
 
     void OnValidate()
     {
-        if (targetGraphic != null)
+        if (visualRepres != Visual.TimeText)
         {
-            targetGraphic.color = defaultColour;
+            if (targetGraphic != null)
+            {
+                targetGraphic.color = defaultColour;
+            }
+            SetAnchor();
+            targetRect.sizeDelta = GetDefaultSize();
         }
-        SetAnchor();
-        targetRect.sizeDelta = GetDefaultSize();
     }
 
     #endregion
@@ -146,20 +150,30 @@ public class ValueTracker : UIElement
                 anchor = new Vector2(0.5f, 0.5f);
             }
         }
-        else
+        else if (visualRepres == Visual.Rotate)
         {
             anchor = new Vector2(rotAnchorX, rotAnchorY);
         }
-        targetRect.anchorMin = anchor;
-        targetRect.anchorMax = anchor;
-        targetRect.pivot = anchor;
-        targetRect.anchoredPosition = Vector2.zero;
+
+        if (visualRepres != Visual.TimeText)
+        {
+            targetRect.anchorMin = anchor;
+            targetRect.anchorMax = anchor;
+            targetRect.pivot = anchor;
+            targetRect.anchoredPosition = Vector2.zero;
+        }
     }
 
     private void OnAwakeProperties()
     {
-        Vector2 size = GetDefaultSize();
-        Vector3 rot = targetRect.eulerAngles;
+        Vector2 size = new Vector2();
+        Vector3 rot = new Vector3();
+        if (visualRepres != Visual.TimeText)
+        {
+            size = GetDefaultSize();
+            rot = targetRect.eulerAngles;
+        }
+
         if (visualRepres == Visual.Scale)
         {
             if (scaleDirection == ScaleDir.X)
@@ -183,7 +197,7 @@ public class ValueTracker : UIElement
             }
             targetRect.sizeDelta = size;
         }
-        else
+        else if (visualRepres == Visual.Rotate)
         {
             minAngle *= -1.0f;
             maxAngle *= -1.0f;
@@ -459,9 +473,13 @@ public class ValueTracker : UIElement
         {
             updateAnim = StartCoroutine(IUpdateAnim_Scale(animDuration, flashColourIndex));
         }
-        else
+        else if (visualRepres == Visual.Rotate)
         {
             updateAnim = StartCoroutine(IUpdateAnim_Rotate(animDuration, flashColourIndex));
+        }
+        else
+        {
+            UpdateNoAnim_TimeText();
         }
     }
     
@@ -472,9 +490,13 @@ public class ValueTracker : UIElement
         {
             updateAnim = StartCoroutine(IUpdateAnim_Scale(animDuration, flashColourIndex));
         }
-        else
+        else if (visualRepres == Visual.Rotate)
         {
             updateAnim = StartCoroutine(IUpdateAnim_Rotate(animDuration, flashColourIndex));
+        }
+        else
+        {
+            UpdateNoAnim_TimeText();
         }
     }
 
@@ -583,9 +605,13 @@ public class ValueTracker : UIElement
         {
             UpdateNoAnim_Scale();
         }
-        else
+        else if (visualRepres == Visual.Rotate)
         {
             UpdateNoAnim_Rotate();
+        }
+        else
+        {
+            UpdateNoAnim_TimeText();
         }
     }
     
@@ -625,6 +651,13 @@ public class ValueTracker : UIElement
         float rotEnd = minAngle + rotAngle * (sourceValue/sourceMax);
         targetRect.eulerAngles = targetRect.eulerAngles.SetAxis(Axis.Z, rotEnd);
     }
-    
+
+    private void UpdateNoAnim_TimeText()
+    {
+        string[] components = sourceValue.StopwatchTime();
+        label.text = components[1];
+        label_secondary.text = components[2];
+    }
+
     #endregion
 }

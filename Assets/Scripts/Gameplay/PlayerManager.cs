@@ -58,6 +58,9 @@ public class PlayerManager : Core
         if (GameManager.UIHandler.HUD != null && GameManager.UIHandler.HUD.healthBar != null)
         {
             GameManager.UIHandler.HUD.ShowHealthBar(false);
+            GameManager.UIHandler.HUD.ShowWeaponElevation(false);
+            //GameManager.UIHandler.HUD.ShowWeaponCooldown(false);
+            GameManager.UIHandler.HUD.ShowRespawnTimer(false);
         }
     }
 	
@@ -107,8 +110,27 @@ public class PlayerManager : Core
     {
         GameManager.UIHandler.blackScreen.SetActive(true);
 
-        Vector3 randomSpawnPos = Vector3.zero;
-        /*if (spawnPoints.Length > 0)
+        Vector3 randomSpawnPos = GetSpawnPoint();
+
+        GameObject playerObj = PhotonNetwork.Instantiate(playerPrefab.name, randomSpawnPos, Quaternion.identity);
+        PlayerController client = playerObj.GetComponent<PlayerController>();
+        client.CameraActive(true);
+        GameManager.RoomLoader.loadingCam.SetActive(false);
+
+        AddPlayer(PhotonNetwork.NickName, client);
+
+        GameManager.UIHandler.HUD.ShowHealthBar(true);
+        GameManager.UIHandler.HUD.ShowWeaponElevation(true);
+        //GameManager.UIHandler.HUD.ShowWeaponCooldown(true);
+        GameManager.UIHandler.HUD.healthBar.DoUpdate(client.currentHealth, client.maxHealth, true, 1);
+
+        GameManager.UIHandler.blackScreen.SetActive(false);
+    }
+
+    public Vector3 GetSpawnPoint()
+    {
+        Vector3 point = new Vector3(2.0f, 0.5f, 0.0f);
+        if (spawnPoints.Length > 0)
         {
             List<SpawnPoint> available = spawnPoints.ToList();
             for (int i = 0; i < spawnPoints.Length; i++)
@@ -116,27 +138,16 @@ public class PlayerManager : Core
                 int r = Random.Range(1, available.Count) - 1;
                 if (available[r].IsValid(5.0f))
                 {
-                    randomSpawnPos = available[r].pos;
+                    point = available[r].pos;
                 }
                 else
                 {
                     available.RemoveAt(r);
                 }
             }
-        }*/
-        randomSpawnPos.y = 0.3f;
-
-        GameObject playerObj = PhotonNetwork.Instantiate(playerPrefab.name, randomSpawnPos, Quaternion.identity);
-        PlayerController client = playerObj.GetComponent<PlayerController>();
-        client.SetAsClient(true);
-        GameManager.RoomLoader.loadingCam.SetActive(false);
-
-        AddPlayer(PhotonNetwork.NickName, client);
-
-        GameManager.UIHandler.HUD.ShowHealthBar(true);
-        GameManager.UIHandler.HUD.healthBar.DoUpdate(client.currentHealth, client.maxHealth, true, 1);
-
-        GameManager.UIHandler.blackScreen.SetActive(false);
+        }
+        point.y -= 0.2f;
+        return point;
     }
 
     [PunRPC]

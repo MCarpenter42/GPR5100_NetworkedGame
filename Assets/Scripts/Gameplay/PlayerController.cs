@@ -27,8 +27,11 @@ public class PlayerController : Core
     [SerializeField] Transform body;
     [SerializeField] Transform cam;
     [SerializeField] Transform pitchPivot;
+    [SerializeField] MeshRenderer[] modelElements;
+    public Nameplate nameplate;
 
     [HideInInspector] public Rigidbody rb { get { return gameObject.GetOrAddComponent<Rigidbody>(); } }
+    [HideInInspector] public Collider coll { get { return gameObject.GetOrAddComponent<Collider>(); } }
     private PhotonView view { get { return gameObject.GetComponent<PhotonView>(); } }
 
     #endregion
@@ -46,8 +49,6 @@ public class PlayerController : Core
     [SerializeField] float minLookAngle = -15.0f;
     [Range(30.0f, 90.0f)]
     [SerializeField] float maxLookAngle = 30.0f;
-
-    //public bool view.IsMine = false;
 
     [HideInInspector] public Vector3 direction = Vector3.zero;
     [HideInInspector] public float dirRot = 0.0f;
@@ -67,13 +68,13 @@ public class PlayerController : Core
     [SerializeField] Weapon[] weapons = new Weapon[1];
     public int activeWeapon = 0;
 
-    [HideInInspector] bool alive = true;
-    [HideInInspector] bool damageCooldown = false;
-    [HideInInspector] bool canBeDamaged = true;
-    [HideInInspector] bool canBeHealed = true;
-    [HideInInspector] bool canShoot = true;
+    [HideInInspector] public bool alive = true;
+    [HideInInspector] public bool damageCooldown = false;
+    [HideInInspector] public bool canBeDamaged = true;
+    [HideInInspector] public bool canBeHealed = true;
+    [HideInInspector] public bool canShoot = true;
 
-    [HideInInspector] int kills = 0;
+    [HideInInspector] public int kills = 0;
 
     #endregion
 
@@ -92,6 +93,12 @@ public class PlayerController : Core
     void Awake()
     {
         currentHealth = maxHealth;
+        camOffset = cam.localPosition;
+        if (nameplate != null)
+        {
+            nameplate.SetText(playerName);
+            nameplate.UpdateHealthBar(currentHealth, maxHealth);
+        }
     }
 
     void Start()
@@ -107,7 +114,6 @@ public class PlayerController : Core
         if (view.IsMine)
         {
             Inputs();
-            CameraDist();
         }
     }
 
@@ -125,13 +131,14 @@ public class PlayerController : Core
     
     public void Inputs()
     {
-        if (view.IsMine)
+        if (alive)
         {
             if (!GameManager.UIHandler.escMenu.framesVisible)
             {
                 GetDirection();
                 Rotate();
                 Shooting();
+                CameraDist();
             }
         }
     }
@@ -306,13 +313,44 @@ public class PlayerController : Core
         {
             if (GetInput(Controls.Shooting.PrimaryFire) || (GetInput(Controls.Shooting.SecondaryFire) && !weapons[activeWeapon].hasSecondaryFire))
             {
-                weapons[activeWeapon].PrimaryFire();
+                view.RPC("PrimaryFire", RpcTarget.All);
             }
             else if (GetInput(Controls.Shooting.SecondaryFire))
             {
-                weapons[activeWeapon].SecondaryFire();
+                view.RPC("SecondaryFire", RpcTarget.All);
             }
         }
+    }
+
+    [PunRPC]
+    public void PrimaryFire()
+    {
+        Weapon active = weapons[activeWeapon];
+        if (!active.onCooldown)
+        {
+            Projectile prj = Instantiate(active.primaryProjectile, active.firePoint.position, Quaternion.identity);
+            prj.gameObject.transform.eulerAngles = active.firePoint.eulerAngles;
+            prj.Fire();
+            active.Cooldown(active.primaryFireCooldown);
+        }
+    }
+
+    [PunRPC]
+    public void SecondaryFire()
+    {
+        Weapon active = weapons[activeWeapon];
+        if (!active.onCooldown)
+        {
+            Projectile prj = Instantiate(active.secondaryProjectile, active.firePoint.position, Quaternion.identity);
+            prj.gameObject.transform.eulerAngles = active.firePoint.eulerAngles;
+            prj.Fire();
+            active.Cooldown(active.secondaryFireCooldown);
+        }
+    }
+
+    public void CameraActive(bool active)
+    {
+        cam.gameObject.SetActive(active);
     }
 
     private void CameraDist()
@@ -331,28 +369,11 @@ public class PlayerController : Core
         }
     }
 
-    public void SetAsClient(bool set)
-    {
-        if (view.IsMine)
-        {
-            cam.gameObject.SetActive(true);
-            camOffset = cam.position - pitchPivot.position;
-        }
-        
-        //view.IsMine = set;
-        /*cam.gameObject.SetActive(set);
-        if (set)
-        {
-            camOffset = cam.position - pitchPivot.position;
-            GameManager.ClientPlayer = this;
-        }*/
-    }
-
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
     public void Damage(int damage)
     {
-        if (canBeDamaged)
+        if (canBeDamaged && !damageCooldown)
         {
             if (currentHealth >= damage)
             {
@@ -384,11 +405,18 @@ public class PlayerController : Core
 
     private void OnDamaged(int damage)
     {
-        //StartCoroutine(IDamageCooldown());
+        StartCoroutine(IDamageCooldown());
         if (view.IsMine)
         {
             GameManager.UIHandler.HUD.healthBar.DoUpdate(currentHealth, maxHealth, 0);
+            SyncHealth(currentHealth);
+
+            if (currentHealth == 0)
+            {
+                view.RPC("OnDeath", RpcTarget.All);
+            }
         }
+        OnHealthChange();
     }
 
     private void OnHealed(int healing)
@@ -396,7 +424,14 @@ public class PlayerController : Core
         if (view.IsMine)
         {
             GameManager.UIHandler.HUD.healthBar.DoUpdate(currentHealth, maxHealth, 1);
+            SyncHealth(currentHealth);
         }
+        OnHealthChange();
+    }
+
+    private void OnHealthChange()
+    {
+        nameplate.UpdateHealthBar(currentHealth, maxHealth);
     }
 
     private IEnumerator IDamageCooldown()
@@ -408,5 +443,80 @@ public class PlayerController : Core
             yield return new WaitForFixedUpdate();
         }
         damageCooldown = false;
+    }
+
+    [PunRPC]
+    private void SyncHealth(int health)
+    {
+        currentHealth = health;
+    }
+
+    [PunRPC]
+    private void OnDeath()
+    {
+        alive = false;
+        PhysicalPresence(false);
+        if (view.IsMine)
+        {
+            HUDElements(false, false, false, true);
+        }
+        else
+        {
+            nameplate.Show(false);
+        }
+
+        Respawn(10.0f);
+    }
+
+    public void Respawn(float respawnTimer)
+    {
+        StartCoroutine(IRespawn(respawnTimer));
+    }
+
+    private IEnumerator IRespawn(float respawnTimer)
+    {
+        float timePassed = 0.0f;
+        while (timePassed <= respawnTimer)
+        {
+            yield return null;
+            timePassed += Time.deltaTime;
+            GameManager.UIHandler.HUD.respawnTimer.DoUpdate(respawnTimer - timePassed);
+        }
+
+        GameManager.UIHandler.blackScreen.SetActive(true);
+
+        alive = true;
+        transform.position = GameManager.PlayerManager.GetSpawnPoint();
+        if (view.IsMine)
+        {
+            HUDElements(true, true, true, false);
+        }
+        PhysicalPresence(true);
+        Heal(maxHealth);
+        if (!view.IsMine)
+        {
+            nameplate.Show(false);
+        }
+
+        GameManager.UIHandler.blackScreen.SetActive(false);
+    }
+
+    private void PhysicalPresence(bool active)
+    {
+        foreach (MeshRenderer rndr in modelElements)
+        {
+            rndr.enabled = active;
+        }
+        weapons[activeWeapon].Show(active);
+        coll.enabled = active;
+        rb.useGravity = active;
+    }
+
+    private void HUDElements(bool healthBar, bool elevation, bool fireCooldown, bool respawnTimer)
+    {
+        GameManager.UIHandler.HUD.ShowHealthBar(healthBar);
+        GameManager.UIHandler.HUD.ShowWeaponElevation(elevation);
+        //GameManager.UIHandler.HUD.ShowWeaponCooldown(fireCooldown);
+        GameManager.UIHandler.HUD.ShowRespawnTimer(respawnTimer);
     }
 }

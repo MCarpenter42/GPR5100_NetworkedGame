@@ -344,6 +344,16 @@ namespace NeoCambion
 
         public static class UnityExt_Transform
         {
+            public static Transform[] GetChildren(this Transform trn)
+            {
+                Transform[] children = new Transform[trn.childCount];
+                for (int i = 0; i < trn.childCount; i++)
+                {
+                    children[i] = trn.GetChild(i);
+                }
+                return children;
+            }
+
             public static void MoveTowards(this Transform trn, Vector3 target)
             {
                 trn.MoveTowards(target, 1.0f, false);
@@ -774,7 +784,6 @@ namespace NeoCambion
             {
                 trn.MoveTo(target.position, tether, range);
             }
-
         }
 
         public static class UnityExt_Vector2

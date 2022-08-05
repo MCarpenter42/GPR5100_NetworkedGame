@@ -33,7 +33,26 @@ public class GameManager : Core
     public static PlayerManager PlayerManager { get { return FindObjectOfType<PlayerManager>(); } }
 
     public static GameObject WorldSpace { get { return GameObject.FindGameObjectWithTag("WorldSpace"); } }
-    public static PlayerController ClientPlayer;
+    public static PlayerController clientInstance = null;
+    public static PlayerController ClientPlayer
+    {
+        get
+        {
+            if (clientInstance == null)
+            {
+                PlayerController[] players = FindObjectsOfType<PlayerController>();
+                foreach (PlayerController player in players)
+                {
+                    if (player.photonView.IsMine)
+                    {
+                        clientInstance = player;
+                        break;
+                    }
+                }
+            }
+            return clientInstance;
+        }
+    }
 
     #endregion
 
@@ -167,12 +186,19 @@ public class GameManager : Core
     public override void OnLeftRoom()
     {
         base.OnLeftRoom();
-        ClientPlayer = null;
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
         base.OnPlayerEnteredRoom(newPlayer);
+        foreach (KeyValuePair<string, PlayerController> kvp in PlayerManager.players)
+        {
+            PlayerController player = kvp.Value;
+            if (player.alive)
+            {
+                player.nameplate.Show(true);
+            }
+        }
     }
 
     public override void OnPlayerLeftRoom(Player otherPlayer)

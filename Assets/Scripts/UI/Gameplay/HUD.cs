@@ -27,6 +27,7 @@ public class HUD : UIElement
     public ValueTracker healthBar;
     public ValueTracker weaponElevation;
     public ValueTracker weaponCooldown;
+    public ValueTracker respawnTimer;
 
     #endregion
 
@@ -73,5 +74,20 @@ public class HUD : UIElement
     public void ShowHealthBar(bool show)
     {
         healthBar.SetShown(show);
+    }
+
+    public void ShowWeaponElevation(bool show)
+    {
+        weaponElevation.SetShown(show);
+    }
+
+    public void ShowWeaponCooldown(bool show)
+    {
+        weaponCooldown.SetShown(show);
+    }
+
+    public void ShowRespawnTimer(bool show)
+    {
+        respawnTimer.SetShown(show);
     }
 }

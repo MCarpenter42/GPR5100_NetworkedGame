@@ -21,17 +21,19 @@ using NeoCambion.Unity;
 
 public class Weapon : Core
 {
-    [Header("Weapon Properties")]
-	[SerializeField] Transform firePoint;
+    [Header("Components")]
+    public Transform firePoint;
+	public MeshRenderer[] modelElements;
+    public PhotonView pView { get { return gameObject.GetOrAddComponent<PhotonView>(); } }
 
     [Header("Primary Fire")]
-    [SerializeField] Projectile primaryProjectile;
-    [SerializeField] float primaryFireCooldown = 0.5f;
+    public Projectile primaryProjectile;
+    public float primaryFireCooldown = 0.5f;
 
     [Header("Secondary Fire")]
-    [SerializeField] Projectile secondaryProjectile;
-    [SerializeField] bool enableSecondaryFire = false;
-    [SerializeField] float secondaryFireCooldown = 0.5f;
+    public Projectile secondaryProjectile;
+    public bool enableSecondaryFire = false;
+    public float secondaryFireCooldown = 0.5f;
     public bool hasSecondaryFire
     {
         get
@@ -51,7 +53,7 @@ public class Weapon : Core
 
     #region [ COROUTINES ]
 
-    private Coroutine cooldown = null;
+    public Coroutine cooldown = null;
 	
 	#endregion
 
@@ -71,32 +73,47 @@ public class Weapon : Core
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+    /*[PunRPC]
     public void PrimaryFire()
     {
         if (!onCooldown)
         {
-            Projectile prj = InstantiateRPC(primaryProjectile, firePoint.position, Quaternion.identity);
+            Projectile prj = Instantiate(primaryProjectile, firePoint.position, Quaternion.identity);
             prj.gameObject.transform.eulerAngles = firePoint.eulerAngles;
             prj.Fire();
             cooldown = StartCoroutine(Cooldown(primaryFireCooldown));
         }
-    }
-    
+    }*/
+
+    /*[PunRPC]
     public void SecondaryFire()
     {
         if (!onCooldown)
         {
-            Projectile prj = InstantiateRPC(secondaryProjectile, firePoint.position, Quaternion.identity);
+            Projectile prj = Instantiate(secondaryProjectile, firePoint.position, Quaternion.identity);
             prj.gameObject.transform.eulerAngles = firePoint.eulerAngles;
             prj.Fire();
             cooldown = StartCoroutine(Cooldown(secondaryFireCooldown));
         }
+    }*/
+
+    public void Cooldown(float cd)
+    {
+        cooldown = StartCoroutine(ICooldown(cd));
     }
 
-    private IEnumerator Cooldown(float cd)
+    private IEnumerator ICooldown(float cd)
     {
         onCooldown = true;
         yield return new WaitForSeconds(cd);
         onCooldown = false;
+    }
+
+    public void Show(bool show)
+    {
+        foreach (MeshRenderer rndr in modelElements)
+        {
+            rndr.enabled = show;
+        }
     }
 }
